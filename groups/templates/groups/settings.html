@@ -1,0 +1,808 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Settings | Chama Link</title>
+
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f7fb;
+            color: #172033;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        .settings-page {
+            width: min(1200px, 94%);
+            margin: 30px auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #536179;
+            font-size: 14px;
+            margin-bottom: 22px;
+        }
+
+        .back-link:hover {
+            color: #2563eb;
+        }
+
+        .settings-header {
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #2563eb;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .settings-header h1 {
+            font-size: clamp(28px, 4vw, 38px);
+            margin: 0 0 10px;
+            color: #172033;
+        }
+
+        .settings-header > p:last-child {
+            color: #68758a;
+            line-height: 1.7;
+            max-width: 650px;
+            margin: 0;
+        }
+
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 245px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        .settings-menu,
+        .settings-card {
+            background: #ffffff;
+            border: 1px solid #e6eaf1;
+            border-radius: 16px;
+            box-shadow: 0 5px 20px rgba(20, 35, 65, 0.035);
+        }
+
+        .settings-menu {
+            padding: 18px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .menu-title {
+            color: #8993a5;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            margin: 5px 10px 15px;
+            text-transform: uppercase;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 12px;
+            border-radius: 9px;
+            color: #5d6980;
+            font-size: 14px;
+            margin-bottom: 5px;
+            transition: 0.2s;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            background: #edf4ff;
+            color: #2563eb;
+        }
+
+        .menu-icon {
+            width: 22px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            min-width: 0;
+        }
+
+        .settings-card {
+            padding: 26px;
+            scroll-margin-top: 20px;
+        }
+
+        .card-heading {
+            padding-bottom: 18px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .card-heading h2 {
+            font-size: 19px;
+            margin: 0 0 7px;
+            color: #172033;
+        }
+
+        .card-heading p {
+            color: #7b8799;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .profile-intro {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 26px;
+        }
+
+        .profile-avatar {
+            width: 76px;
+            height: 76px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #e7efff;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-size: 27px;
+            font-weight: 700;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-intro h3 {
+            margin: 0 0 7px;
+            font-size: 17px;
+        }
+
+        .profile-intro p {
+            margin: 0;
+            color: #7b8799;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .form-field {
+            min-width: 0;
+        }
+
+        .form-field label,
+        .picture-upload-field label {
+            display: block;
+            color: #344057;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 9px;
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea,
+        .picture-upload-field input {
+            display: block;
+            width: 100%;
+            min-width: 0;
+            border: 1px solid #dfe5ee;
+            background: #ffffff;
+            color: #172033;
+            border-radius: 9px;
+            padding: 12px 13px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus,
+        .picture-upload-field input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-field ul.errorlist,
+        .picture-upload-field ul.errorlist {
+            color: #dc2626;
+            font-size: 12px;
+            padding-left: 18px;
+        }
+
+        .field-help {
+            color: #8993a5;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 7px;
+        }
+
+        .picture-upload-field {
+            margin-top: 24px;
+        }
+
+        .picture-upload-field input {
+            padding: 9px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .primary-button {
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px 21px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .primary-button:hover {
+            background: #1d4ed8;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 17px 0;
+            border-bottom: 1px solid #edf0f5;
+        }
+
+        .info-row:first-child {
+            padding-top: 0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-label {
+            color: #344057;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .info-description {
+            color: #8993a5;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .status-chip {
+            display: inline-block;
+            flex-shrink: 0;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 20px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-chip.enabled {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .notice {
+            padding: 13px 15px;
+            border-radius: 9px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .notice.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .notice.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .notice.info {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1px solid #dbeafe;
+        }
+
+        .security-note {
+            color: #68758a;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 0;
+        }
+
+        .settings-footer {
+            text-align: center;
+            color: #9aa4b4;
+            font-size: 12px;
+            padding: 25px 0 10px;
+        }
+
+        @media (max-width: 800px) {
+            .settings-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-menu {
+                position: static;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 4px;
+            }
+
+            .menu-title {
+                grid-column: 1 / -1;
+            }
+
+            .menu-link {
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .settings-page {
+                width: 92%;
+                margin: 20px auto;
+            }
+
+            .settings-card {
+                padding: 19px;
+            }
+
+            .settings-menu {
+                padding: 12px;
+            }
+
+            .menu-link {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .profile-avatar {
+                width: 62px;
+                height: 62px;
+            }
+
+            .info-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .form-actions .primary-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+<main class="settings-page">
+
+    <a href="{% url 'dashboard' %}" class="back-link">
+        &larr; Back to Dashboard
+    </a>
+
+    <header class="settings-header">
+        <p class="eyebrow">Chama Link / Account</p>
+        <h1>Settings</h1>
+        <p>
+            Manage your personal information, review payment configuration,
+            and keep your account details up to date.
+        </p>
+    </header>
+
+    <div class="settings-layout">
+
+        <!-- Sidebar -->
+        <aside class="settings-menu">
+            <p class="menu-title">Account settings</p>
+
+            <a href="#general" class="menu-link active">
+                <span class="menu-icon">⌂</span>
+                General
+            </a>
+
+            <a href="#profile" class="menu-link">
+                <span class="menu-icon">♙</span>
+                My Profile
+            </a>
+
+            <a href="#payments" class="menu-link">
+                <span class="menu-icon">▣</span>
+                Payments
+            </a>
+
+            <a href="#security" class="menu-link">
+                <span class="menu-icon">♢</span>
+                Security
+            </a>
+
+            <a href="#about" class="menu-link">
+                <span class="menu-icon">ⓘ</span>
+                About Chama Link
+            </a>
+        </aside>
+
+        <!-- Main settings content -->
+        <div class="settings-content">
+
+            <!-- Django messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="notice {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- General -->
+            <section class="settings-card" id="general">
+                <div class="card-heading">
+                    <h2>General settings</h2>
+                    <p>
+                        An overview of your Chama Link account.
+                    </p>
+                </div>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Username</div>
+                            <div class="info-description">
+                                Your account username.
+                            </div>
+                        </div>
+
+                        <span class="status-chip">
+                            {{ request.user.username }}
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Account status</div>
+                            <div class="info-description">
+                                Your account is currently active.
+                            </div>
+                        </div>
+
+                        {% if request.user.is_active %}
+                            <span class="status-chip enabled">Active</span>
+                        {% else %}
+                            <span class="status-chip">Inactive</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Account type</div>
+                            <div class="info-description">
+                                Your access level on Chama Link.
+                            </div>
+                        </div>
+
+                        {% if request.user.is_superuser %}
+                            <span class="status-chip">Administrator</span>
+                        {% elif is_official %}
+                            <span class="status-chip">Chama official</span>
+                        {% else %}
+                            <span class="status-chip">Member</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile -->
+            <section class="settings-card" id="profile">
+                <div class="card-heading">
+                    <h2>My profile</h2>
+                    <p>
+                        Update your name, email address, and profile picture.
+                    </p>
+                </div>
+
+                <div class="profile-intro">
+                    <div class="profile-avatar">
+                        {% if profile.profile_picture %}
+                            <img
+                                src="{{ profile.profile_picture.url }}"
+                                alt="Profile picture"
+                            >
+                        {% else %}
+                            {{ request.user.first_name|first|upper|default:request.user.username|first|upper }}
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <h3>
+                            {% if request.user.get_full_name %}
+                                {{ request.user.get_full_name }}
+                            {% else %}
+                                {{ request.user.username }}
+                            {% endif %}
+                        </h3>
+
+                        <p>
+                            {{ request.user.email|default:"No email address added yet." }}
+                        </p>
+                    </div>
+                </div>
+
+                <form
+                    method="post"
+                    action="{% url 'app_settings' %}"
+                    enctype="multipart/form-data"
+                >
+                    {% csrf_token %}
+
+                    {% if profile_form.non_field_errors %}
+                        <div class="notice error">
+                            {{ profile_form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="form-grid">
+                        {% for field in profile_form %}
+                            <div class="form-field">
+                                <label for="{{ field.id_for_label }}">
+                                    {{ field.label }}
+                                </label>
+
+                                {{ field }}
+
+                                {% if field.help_text %}
+                                    <div class="field-help">
+                                        {{ field.help_text }}
+                                    </div>
+                                {% endif %}
+
+                                {% if field.errors %}
+                                    <div class="field-help">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="picture-upload-field">
+                        <label for="{{ picture_form.profile_picture.id_for_label }}">
+                            Profile picture
+                        </label>
+
+                        {{ picture_form.profile_picture }}
+
+                        {% if picture_form.profile_picture.help_text %}
+                            <div class="field-help">
+                                {{ picture_form.profile_picture.help_text }}
+                            </div>
+                        {% endif %}
+
+                        {% if picture_form.profile_picture.errors %}
+                            <div class="field-help">
+                                {{ picture_form.profile_picture.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="primary-button">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Payments -->
+            <section class="settings-card" id="payments">
+                <div class="card-heading">
+                    <h2>Payments</h2>
+                    <p>
+                        Review payment-related features available in your
+                        Chama Link installation.
+                    </p>
+                </div>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">M-Pesa integration</div>
+                            <div class="info-description">
+                                Payment processing configuration for
+                                contributions and other transactions.
+                            </div>
+                        </div>
+
+                        <span class="status-chip">
+                            {% if settings.MPESA_CONSUMER_KEY and settings.MPESA_CONSUMER_SECRET %}
+                                Credentials configured
+                            {% else %}
+                                Setup required
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Payment environment</div>
+                            <div class="info-description">
+                                Confirm that your payment credentials match
+                                the environment you intend to use.
+                            </div>
+                        </div>
+
+                        <span class="status-chip">Check configuration</span>
+                    </div>
+                </div>
+
+                <div class="notice info" style="margin-top: 20px; margin-bottom: 0;">
+                    Never share your M-Pesa passkey, consumer secret, or
+                    other payment credentials. Payment settings should be
+                    managed securely by the system administrator.
+                </div>
+            </section>
+
+            <!-- Security -->
+            <section class="settings-card" id="security">
+                <div class="card-heading">
+                    <h2>Security</h2>
+                    <p>
+                        Keep your account information safe.
+                    </p>
+                </div>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Signed-in account</div>
+                            <div class="info-description">
+                                You are signed in as
+                                {{ request.user.username }}.
+                            </div>
+                        </div>
+
+                        <span class="status-chip enabled">Signed in</span>
+                    </div>
+
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Password</div>
+                            <div class="info-description">
+                                Change your password regularly and never
+                                share it with anyone.
+                            </div>
+                        </div>
+
+                        <a
+                            href="{% url 'password_change' %}"
+                            class="status-chip"
+                        >
+                            Change password
+                        </a>
+                    </div>
+                </div>
+
+                <p class="security-note" style="margin-top: 22px;">
+                    Always log out when using a shared computer. If you
+                    suspect someone has accessed your account, change your
+                    password immediately.
+                </p>
+            </section>
+
+            <!-- About -->
+            <section class="settings-card" id="about">
+                <div class="card-heading">
+                    <h2>About Chama Link</h2>
+                    <p>
+                        A platform designed to help savings groups manage
+                        their activities more easily.
+                    </p>
+                </div>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Application</div>
+                            <div class="info-description">
+                                Chama Link
+                            </div>
+                        </div>
+                        <span class="status-chip">Web application</span>
+                    </div>
+
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">Platform features</div>
+                            <div class="info-description">
+                                Group management, member records,
+                                contributions, loans, and reports.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <footer class="settings-footer">
+        &copy; {% now "Y" %} Chama Link. Manage your chama with confidence.
+    </footer>
+
+</main>
+</body>
+</html>

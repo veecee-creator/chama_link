@@ -1,0 +1,13 @@
+{
+  "name": "Chama Link",
+  "short_name": "Chama Link",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0B1F16",
+  "theme_color": "#0F5B3A",
+  "icons": [
+    { "src": "/static/groups/logo/app-icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/static/groups/logo/app-icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

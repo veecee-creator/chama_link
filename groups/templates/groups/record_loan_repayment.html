@@ -1,0 +1,69 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Loan Repayment | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body>
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+
+    <div class="registration-page">
+        <header class="registration-header">
+            <h1>Record Loan Repayment</h1>
+            <p>Record a payment made towards an approved loan.</p>
+        </header>
+
+        <main class="registration-container">
+            <div class="registration-card">
+                <h2>Repayment Details</h2>
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    {% for field in form %}
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% for error in field.errors %}
+                                <p class="field-error">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <p class="field-error">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-button">
+                            Save Repayment
+                        </button>
+
+                        <a href="{% url 'loans' %}" class="cancel-button">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

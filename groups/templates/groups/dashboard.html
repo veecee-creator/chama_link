@@ -1,0 +1,374 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Chama Link</title>
+
+    <!-- LOGO: browser tab icon, phone home-screen icon, installable app -->
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ChamaLink">
+
+    <!-- LOGO: skip the splash if it already played in this browser session -->
+    <script>
+        try { if (sessionStorage.getItem('chamaSplashSeen')) document.documentElement.classList.add('no-splash'); } catch (e) {}
+    </script>
+
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body class="dashboard-page">
+
+<!-- LOGO: animated splash (plays once per session) -->
+<div id="splash" aria-hidden="true">
+    <svg class="mark" viewBox="0 0 64 64">
+        <circle class="ring" cx="32" cy="32" r="22" transform="rotate(-90 32 32)"/>
+        <circle class="rip" cx="32" cy="32" r="8"/>
+        <circle class="coin" cx="32" cy="32" r="8"/>
+        <circle class="d" style="--i:0;--x:150px;--y:-60px" cx="54" cy="32" r="6"/>
+        <circle class="d" style="--i:1;--x:120px;--y:140px" cx="43" cy="51" r="6"/>
+        <circle class="d" style="--i:2;--x:-90px;--y:170px" cx="21" cy="51" r="6"/>
+        <circle class="d" style="--i:3;--x:-170px;--y:30px" cx="10" cy="32" r="6"/>
+        <circle class="d" style="--i:4;--x:-110px;--y:-150px" cx="21" cy="13" r="6"/>
+        <circle class="d" style="--i:5;--x:70px;--y:-170px" cx="43" cy="13" r="6"/>
+    </svg>
+    <div class="word"><span class="w1">chama</span><span class="w2">link</span></div>
+    <p class="tag">Save together. Grow together.</p>
+</div>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <a href="{% url 'dashboard' %}" class="brand">
+            <img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="40" height="40">
+            <span>Chama<span class="brand-light">Link</span>
+                <small>SAVINGS MANAGEMENT</small>
+            </span>
+        </a>
+
+        <div class="nav-heading">WORKSPACE</div>
+        <nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link active">
+                <span class="nav-icon">▦</span> Dashboard
+            </a>
+            <a href="{% url 'members' %}" class="nav-link">
+                <span class="nav-icon">♙</span> Members
+            </a>
+            <a href="/contributions/" class="nav-link">
+                <span class="nav-icon">↗</span> Contributions
+            </a>
+            <a href="{% url 'loans' %}" class="nav-link">
+                <span class="nav-icon">⇄</span> Loans
+            </a>
+            <a href="{% url 'chama_directory' %}" class="nav-link">
+                <span class="nav-icon">⌕</span> Find a Chama
+            </a>
+            {% if is_official %}<a href="{% url 'financial_reports' %}" class="nav-link">
+                <span class="nav-icon">▤</span> Financial Reports
+            </a>{% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <div class="help-symbol">?</div>
+                <strong>Need help?</strong>
+                <p>Manage your chama with confidence.</p>
+                <a href="/settings/">Account settings →</a>
+            </div>
+            <div class="sidebar-footer">© 2026 Chama Link</div>
+        </div>
+    </aside>
+
+    <main class="main-content">
+
+        <header class="topbar">
+            <div class="mobile-brand">
+                <img class="brand-logo brand-logo-sm" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="32" height="32">
+                <strong>ChamaLink</strong>
+            </div>
+
+            <div class="breadcrumb">
+                Workspace <span>/</span> <strong>Dashboard</strong>
+            </div>
+
+            <div class="topbar-right">
+                <a class="settings-link" href="/settings/">⚙ Settings</a>
+                <div class="user-profile">
+                    <a href="/settings/" class="avatar-link">
+                        {% if profile.profile_picture %}
+                            <img class="avatar" src="{{ profile.profile_picture.url }}"
+                                 alt="Profile picture">
+                        {% else %}
+                            <span class="avatar avatar-fallback">
+                                {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                            </span>
+                        {% endif %}
+                    </a>
+                    <div class="user-info">
+                        <strong>
+                            {{ request.user.get_full_name|default:request.user.username }}
+                        </strong>
+                        <small>Account</small>
+                    </div>
+                    
+<form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button type="submit" class="logout-link">
+        Logout
+    </button>
+</form>
+
+                </div>
+            </div>
+        </header>
+
+        <section class="dashboard-body">
+            <div class="welcome-row">
+                <div>
+                    <div class="eyebrow">YOUR FINANCIAL OVERVIEW</div>
+                    <h1>Good to see you, {{ request.user.first_name|default:request.user.username }} 👋</h1>
+                    <p>Here's what's happening with your savings groups today.</p>
+                </div>
+                <a class="primary-button" href="{% url 'create_chama' %}">
+                    <span>＋</span> Create Chama
+                </a>
+            </div>
+
+            {% if memberships %}
+            <form class="chama-switcher" method="get">
+                <label for="active-chama">Your chama</label>
+                <select id="active-chama" name="chama" onchange="this.form.submit()">
+                    {% for item in memberships %}
+                    <option value="{{ item.chama_id }}" {% if membership.id == item.id %}selected{% endif %}>{{ item.chama.name }} · {{ item.get_role_display }}</option>
+                    {% endfor %}
+                </select>
+                <noscript><button class="secondary-button">Open chama</button></noscript>
+            </form>
+            {% endif %}
+
+            {% if membership %}
+            <section class="stats-grid">
+                <article class="stat-card metric-contributions">
+                    <div class="stat-top">
+                        <span class="stat-label">My Contributions</span>
+                        <span class="stat-icon purple">▦</span>
+                    </div>
+                    <div class="stat-value money">KSh {{ personal_contributions|floatformat:2 }}</div>
+                    <div class="stat-bottom">Your recorded savings in {{ membership.chama.name }}</div>
+                </article>
+
+                <article class="stat-card metric-loans">
+                    <div class="stat-top">
+                        <span class="stat-label">My Loans</span>
+                        <span class="stat-icon blue">♙</span>
+                    </div>
+                    <div class="stat-value money">KSh {{ personal_loans|floatformat:2 }}</div>
+                    <div class="stat-bottom">Loans applied for by you</div>
+                </article>
+
+                <article class="stat-card contribution-card metric-outstanding">
+                    <div class="stat-top">
+                        <span class="stat-label">Outstanding Loans</span>
+                        <span class="stat-icon green">KSh</span>
+                    </div>
+                    <div class="stat-value money">
+                        KSh {{ personal_outstanding|floatformat:2 }}
+                    </div>
+                    <div class="stat-bottom">Your approved loan balance</div>
+                </article>
+                <article class="stat-card metric-balance">
+                    <div class="stat-top"><span class="stat-label">Available Balance</span><span class="stat-icon blue">KSh</span></div>
+                    <div class="stat-value money">KSh {{ personal_balance|floatformat:2 }}</div>
+                    <div class="stat-bottom">Contributions less approved loan balance</div>
+                </article>
+            </section>
+
+            <section class="info-panel contribution-schedule-panel">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Contribution schedule</h2>
+                        <p>{{ contribution_cycle.frequency }} target: KSh {{ contribution_cycle.amount|floatformat:2 }} · Due {{ contribution_cycle.due_date|date:"d M Y" }}</p>
+                    </div>
+                    <span class="status status-{{ contribution_cycle.status|lower }}">{{ contribution_cycle.status_label }}</span>
+                </div>
+                <p class="stat-bottom">KSh {{ contribution_cycle.paid|floatformat:2 }} recorded this period · KSh {{ contribution_cycle.remaining|floatformat:2 }} remaining</p>
+                {% if contribution_cycle.remaining > 0 %}<a class="secondary-button" href="{% url 'mpesa_payment_page' %}">Pay contribution</a>{% endif %}
+            </section>
+
+            <section class="section-heading">
+                <div>
+                    <h2>Quick actions</h2>
+                    <p>Get things done without navigating through multiple pages.</p>
+                </div>
+            </section>
+
+            <section class="actions-grid">
+                <a href="{% url 'create_chama' %}" class="action-card">
+                    <span class="action-icon purple">＋</span>
+                    <span class="action-text">
+                        <strong>Create a chama</strong>
+                        <small>Set up a new savings group</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'members' %}" class="action-card">
+                    <span class="action-icon blue">♙</span>
+                    <span class="action-text">
+                        <strong>{% if membership.role == 'CHAIRPERSON' %}Manage members{% else %}View members{% endif %}</strong>
+                        <small>Member records for {{ membership.chama.name }}</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'contributions' %}" class="action-card">
+                    <span class="action-icon green">↗</span>
+                    <span class="action-text">
+                        <strong>My contributions</strong>
+                        <small>Review your recorded payments</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'member_financial_history' membership.id %}" class="action-card">
+                    <span class="action-icon green">▤</span>
+                    <span class="action-text">
+                        <strong>My financial report</strong>
+                        <small>View, print or save your contribution and loan history</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'group_finances' %}" class="action-card">
+                    <span class="action-icon orange">▤</span>
+                    <span class="action-text">
+                        <strong>Group finances</strong>
+                        <small>Review cashflow and member fine balances</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'loans' %}" class="action-card">
+                    <span class="action-icon orange">⇄</span>
+                    <span class="action-text">
+                        <strong>{% if membership.role == 'CHAIRPERSON' or membership.role == 'TREASURER' %}Review loans{% else %}My loans{% endif %}</strong>
+                        <small>Review loan activity{% if membership.role == 'CHAIRPERSON' %} and approve applications{% endif %}</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+            </section>
+            {% else %}
+            <section class="empty-workspace">
+                <span class="empty-mark">C</span>
+                <h2>No chama selected yet</h2>
+                <p>Create a chama and become its chairperson, or search for a chama where the chairperson has already registered you.</p>
+                <div><a class="primary-button" href="{% url 'create_chama' %}">＋ Create a chama</a><a class="secondary-button" href="{% url 'chama_directory' %}">Search chamas</a></div>
+            </section>
+            {% endif %}
+
+            <section class="bottom-grid">
+                {% if membership %}
+                <div class="info-panel">
+                    <div class="panel-heading">
+                        <div>
+                            <h2>Your Chama Link workspace</h2>
+                            <p>Keep your group's records organised.</p>
+                        </div>
+                        <span class="panel-badge">OVERVIEW</span>
+                    </div>
+                    {% if is_official %}<div class="workspace-row">
+                        <span class="workspace-icon">✓</span>
+                        <div>
+                            <strong>Track group membership</strong>
+                            <p>Keep member information in one place.</p>
+                        </div>
+                        <a href="{% url 'members' %}">Open →</a>
+                    </div>
+                    <div class="workspace-row">
+                        <span class="workspace-icon">✓</span>
+                        <div>
+                            <strong>Monitor contributions</strong>
+                            <p>Review the contributions recorded in your system.</p>
+                        </div>
+                        <a href="/contributions/">Open →</a>
+                    </div>
+                    <div class="workspace-row">
+                        <span class="workspace-icon">✓</span>
+                        <div>
+                            <strong>Review financial reports</strong>
+                            <p>Access your available financial summaries.</p>
+                        </div>
+                        <a href="{% url 'financial_reports' %}">Open →</a>
+                    </div>{% endif %}
+                </div>
+                {% endif %}
+
+                <div class="profile-panel">
+                    <div class="profile-panel-heading">
+                        <h2>Your account</h2>
+                        <a href="/settings/">Edit</a>
+                    </div>
+
+                    <div class="profile-summary">
+                        {% if profile.profile_picture %}
+                            <img class="large-avatar"
+                                 src="{{ profile.profile_picture.url }}"
+                                 alt="Your profile picture">
+                        {% else %}
+                            <span class="large-avatar large-avatar-fallback">
+                                {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+                            </span>
+                        {% endif %}
+
+                        <div>
+                            <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                            <p>{{ request.user.email|default:"No email added yet" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-detail">
+                        <span>Username</span>
+                        <strong>{{ request.user.username }}</strong>
+                    </div>
+                    <div class="profile-detail">
+                        <span>Account status</span>
+                        <strong class="status-active"><span></span> Active</strong>
+                    </div>
+
+                    <a class="secondary-button" href="/settings/">Manage profile settings →</a>
+                </div>
+            </section>
+
+            <footer class="page-footer">
+                <span>© 2026 Chama Link. Manage your savings with confidence.</span>
+                <a href="/settings/">Settings &amp; account</a>
+            </footer>
+        </section>
+    </main>
+</div>
+
+<!-- LOGO: remove the splash after it plays, and remember it for this session -->
+<script>
+    (function () {
+        var s = document.getElementById('splash');
+        if (!s) return;
+        if (document.documentElement.classList.contains('no-splash')) { s.remove(); return; }
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                s.classList.add('hide');
+                setTimeout(function () { s.remove(); }, 700);
+                try { sessionStorage.setItem('chamaSplashSeen', '1'); } catch (e) {}
+            }, 4600);
+        });
+    })();
+</script>
+<script src="{% static 'groups/pwa.js' %}" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,72 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Chama | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body class="registration-page">
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+
+    <header class="registration-header">
+        <div>
+            <h1>Chama Link</h1>
+            <p>Manage your chama with confidence.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="back-link">
+            Dashboard
+        </a>
+    </header>
+
+    <main class="registration-container">
+        <div class="registration-heading">
+            <p class="eyebrow">CHAMA MANAGEMENT</p>
+            <h2>Create Your First Chama</h2>
+            <p>Set up your group before adding members and recording contributions.</p>
+        </div>
+
+        <section class="registration-card">
+            <h3>Chama Information</h3>
+            <p class="form-description">
+                Enter the basic details of your group.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+
+                        {% for error in field.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <a href="{% url 'dashboard' %}" class="cancel-button">
+                        Cancel
+                    </a>
+                    <button type="submit" class="submit-button">
+                        Create Chama
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+</body>
+</html>

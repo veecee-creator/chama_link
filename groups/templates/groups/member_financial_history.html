@@ -1,0 +1,618 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial History | Chama Link</title>
+
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            color: #172033;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+
+        .financial-page {
+            width: min(1200px, 94%);
+            margin: 0 auto;
+            padding: 28px 0 50px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #16836b;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin: 0 0 8px;
+        }
+
+        .history-header h1 {
+            font-size: clamp(25px, 4vw, 34px);
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .history-header p {
+            color: #718096;
+            margin: 8px 0 0;
+        }
+
+        .back-button {
+            display: inline-block;
+            text-decoration: none;
+            background: #fff;
+            color: #24334b;
+            border: 1px solid #dce3ed;
+            padding: 11px 17px;
+            border-radius: 9px;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: #edf4f8;
+        }
+
+        .member-card {
+            background: #123c35;
+            color: white;
+            padding: 25px;
+            border-radius: 18px;
+            margin-bottom: 22px;
+            box-shadow: 0 8px 24px rgba(18, 60, 53, 0.10);
+        }
+
+        .member-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .member-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,0.13);
+            color: white;
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .member-card h2 {
+            margin: 0 0 6px;
+            font-size: 23px;
+        }
+
+        .member-card .member-subtitle {
+            margin: 0;
+            color: #c9e1db;
+            font-size: 14px;
+        }
+
+        .member-details {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            border-top: 1px solid rgba(255,255,255,0.18);
+            margin-top: 23px;
+            padding-top: 20px;
+        }
+
+        .detail-label {
+            display: block;
+            color: #c9e1db;
+            font-size: 12px;
+            margin-bottom: 7px;
+        }
+
+        .detail-value {
+            font-size: 14px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+            margin-bottom: 28px;
+        }
+
+        .summary-card {
+            background: white;
+            border: 1px solid #e5eaf1;
+            border-radius: 15px;
+            padding: 21px;
+            box-shadow: 0 4px 15px rgba(25, 42, 70, 0.03);
+        }
+
+        .summary-label {
+            color: #718096;
+            font-size: 13px;
+            margin: 0 0 12px;
+        }
+
+        .summary-number {
+            font-size: 30px;
+            line-height: 1.2;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin: 0;
+        }
+
+        .summary-note {
+            color: #8490a2;
+            font-size: 12px;
+            margin: 9px 0 0;
+        }
+
+        .history-section {
+            background: white;
+            border: 1px solid #e5eaf1;
+            border-radius: 16px;
+            padding: 23px;
+            margin-bottom: 22px;
+            box-shadow: 0 4px 15px rgba(25, 42, 70, 0.03);
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .section-heading h2 {
+            font-size: 19px;
+            margin: 0;
+        }
+
+        .section-heading p {
+            color: #8490a2;
+            font-size: 13px;
+            margin: 6px 0 0;
+        }
+
+        .record-count {
+            display: inline-block;
+            background: #edf6f3;
+            color: #16745f;
+            border-radius: 20px;
+            padding: 7px 11px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            min-width: 600px;
+        }
+
+        .history-table th {
+            background: #f7f9fc;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 14px 13px;
+            border-bottom: 1px solid #e5eaf1;
+        }
+
+        .history-table td {
+            padding: 15px 13px;
+            border-bottom: 1px solid #edf0f5;
+            font-size: 13px;
+            color: #344054;
+            white-space: nowrap;
+        }
+
+        .history-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .history-table tbody tr:hover {
+            background: #fafcff;
+        }
+
+        .amount {
+            font-weight: 800;
+            color: #172033 !important;
+        }
+
+        .reference {
+            font-family: Consolas, monospace;
+            font-size: 12px !important;
+            color: #64748b !important;
+        }
+
+        .status {
+            display: inline-block;
+            border-radius: 20px;
+            padding: 6px 10px;
+            background: #eef2f7;
+            color: #526176;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .status-approved,
+        .status-repaid,
+        .status-successful {
+            background: #e4f7ed;
+            color: #167647;
+        }
+
+        .status-pending {
+            background: #fff4d9;
+            color: #986700;
+        }
+
+        .status-rejected,
+        .status-failed {
+            background: #ffebeb;
+            color: #b42318;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 15px !important;
+            color: #7b8798 !important;
+            white-space: normal !important;
+        }
+
+        .empty-icon {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .history-footer {
+            color: #8490a2;
+            text-align: center;
+            font-size: 12px;
+            padding: 12px 5px;
+        }
+
+        @media print { .no-print { display: none !important; } body { background: #fff; } .financial-page { width: 100%; padding: 0; } .history-section, .member-card, .summary-card { box-shadow: none; break-inside: avoid; } }
+
+        @media (max-width: 700px) {
+            .financial-page {
+                width: 92%;
+                padding-top: 20px;
+            }
+
+            .member-card,
+            .history-section {
+                padding: 18px;
+            }
+
+            .member-details {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .summary-card {
+                padding: 17px;
+            }
+
+            .summary-number {
+                font-size: 26px;
+            }
+
+            .history-header {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="financial-page">
+
+        <header class="history-header">
+            <div>
+                <p class="eyebrow"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="30" height="30" style="vertical-align:middle;margin-right:8px">Chama Link / Records</p>
+                <h1>Financial History</h1>
+                <p>Review this member's contributions, loans and repayments.</p>
+            </div>
+
+            <div class="history-actions no-print">
+                <a href="{% url 'dashboard' %}" class="back-button">&larr; Dashboard</a>
+                {% if can_print_individual_report %}<a class="back-button" href="?download=csv">Download CSV</a><button type="button" class="back-button" onclick="window.print()">Print report</button>{% endif %}
+                <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="back-button">Logout</button></form>
+            </div>
+        </header>
+
+        <section class="member-card">
+            <div class="member-top">
+                <div class="member-avatar">
+                    {{ membership.full_name|first|upper }}
+                </div>
+
+                <div>
+                    <h2>{{ membership.full_name }}</h2>
+                    <p class="member-subtitle">
+                        Member financial overview
+                    </p>
+                </div>
+            </div>
+
+            <div class="member-details">
+                <div>
+                    <span class="detail-label">Chama</span>
+                    <span class="detail-value">{{ membership.chama.name }}</span>
+                </div>
+
+                <div>
+                    <span class="detail-label">Phone number</span>
+                    <span class="detail-value">{{ membership.phone_number }}</span>
+                </div>
+
+                <div>
+                    <span class="detail-label">Member role</span>
+                    <span class="detail-value">{{ membership.get_role_display }}</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-card">
+                <p class="summary-label">Contribution records</p>
+                <p class="summary-number">{{ contributions|length }}</p>
+                <p class="summary-note">Recorded contributions</p>
+            </article>
+
+            <article class="summary-card">
+                <p class="summary-label">Loan records</p>
+                <p class="summary-number">{{ loans|length }}</p>
+                <p class="summary-note">Applications and issued loans</p>
+            </article>
+
+            <article class="summary-card">
+                <p class="summary-label">Repayment records</p>
+                <p class="summary-number">{{ repayments|length }}</p>
+                <p class="summary-note">Recorded loan repayments</p>
+            </article>
+
+            <article class="summary-card">
+                <p class="summary-label">Fine records</p>
+                <p class="summary-number">{{ fines|length }}</p>
+                <p class="summary-note">Issued fines and payments</p>
+            </article>
+        </section>
+
+        <section class="history-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Fine History</h2>
+                    <p>Fines issued and payments received for this member.</p>
+                </div>
+                <span class="record-count">{{ fines|length }} fines</span>
+            </div>
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead><tr><th>Issued</th><th>Reason</th><th>Fine</th><th>Paid</th><th>Balance</th></tr></thead>
+                    <tbody>
+                        {% for fine in fines %}
+                        <tr>
+                            <td>{{ fine.issued_at|date:"d M Y" }}</td>
+                            <td>{{ fine.get_category_display }}{% if fine.description %} · {{ fine.description }}{% endif %}</td>
+                            <td class="amount">KSh {{ fine.amount|floatformat:2 }}</td>
+                            <td class="amount">KSh {{ fine.total_paid|floatformat:2 }}</td>
+                            <td class="amount">KSh {{ fine.balance|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="empty-state">No fines have been recorded for this member.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Contribution History</h2>
+                    <p>Payments recorded for this member.</p>
+                </div>
+                <span class="record-count">{{ contributions|length }} records</span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Payment method</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for contribution in contributions %}
+                        <tr>
+                            <td>{{ contribution.contribution_date|date:"d M Y, H:i" }}</td>
+                            <td class="amount">KSh {{ contribution.amount|floatformat:2 }}</td>
+                            <td>{{ contribution.get_payment_method_display }}</td>
+                            <td class="reference">{{ contribution.reference|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <span class="empty-icon">↗</span>
+                                No contributions have been recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Loan History</h2>
+                    <p>Loan applications, decisions and outstanding balances.</p>
+                </div>
+                <span class="record-count">{{ loans|length }} records</span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Date applied</th>
+                            <th>Loan amount</th>
+                            <th>Interest</th>
+                            <th>Status</th>
+                            <th>Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for loan in loans %}
+                        <tr>
+                            <td>{{ loan.applied_at|date:"d M Y" }}</td>
+                            <td class="amount">KSh {{ loan.amount|floatformat:2 }}</td>
+                            <td>{{ loan.interest_rate|floatformat:2 }}%</td>
+                            <td>
+                                <span class="status status-{{ loan.status|lower }}">
+                                    {{ loan.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="amount">KSh {{ loan.outstanding_balance|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <span class="empty-icon">▤</span>
+                                No loans have been recorded for this member.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Loan Repayment History</h2>
+                    <p>Repayments made against this member's loans.</p>
+                </div>
+                <span class="record-count">{{ repayments|length }} records</span>
+            </div>
+
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Payment date</th>
+                            <th>Loan</th>
+                            <th>Amount</th>
+                            <th>Payment method</th>
+                            <th>Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for repayment in repayments %}
+                        <tr>
+                            <td>{{ repayment.payment_date|date:"d M Y, H:i" }}</td>
+                            <td>{{ repayment.loan.id }}</td>
+                            <td class="amount">KSh {{ repayment.amount|floatformat:2 }}</td>
+                            <td>{{ repayment.get_payment_method_display }}</td>
+                            <td class="reference">{{ repayment.reference|default:"—" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="empty-state">
+                                <span class="empty-icon">↻</span>
+                                No loan repayments have been recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="section-heading">
+                <div>
+                    <h2>M-Pesa Payment Status</h2>
+                    <p>See whether each STK request completed and view its receipt number.</p>
+                </div>
+                <span class="record-count">{{ mpesa_transactions|length }} requests</span>
+            </div>
+            <div class="table-wrap">
+                <table class="history-table">
+                    <thead><tr><th>Date</th><th>Payment</th><th>Amount</th><th>Status</th><th>M-Pesa receipt</th><th>Details</th></tr></thead>
+                    <tbody>
+                        {% for payment in mpesa_transactions %}
+                        <tr>
+                            <td>{{ payment.created_at|date:"d M Y, H:i" }}</td>
+                            <td>{{ payment.get_transaction_type_display }}</td>
+                            <td class="amount">KSh {{ payment.amount|floatformat:2 }}</td>
+                            <td><span class="status status-{{ payment.status|lower }}">{{ payment.get_status_display }}</span></td>
+                            <td class="reference">{{ payment.receipt_number|default:"—" }}</td>
+                            <td>{{ payment.result_desc|default:"Waiting for M-Pesa confirmation" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="empty-state">No M-Pesa payment requests yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer class="history-footer">
+            Chama Link · Financial records reflect information currently stored in the system.
+        </footer>
+
+    </main>
+</body>
+</html>

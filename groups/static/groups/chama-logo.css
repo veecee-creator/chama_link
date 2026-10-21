@@ -1,0 +1,26 @@
+/* Chama Link logo: sidebar/topbar logo + animated splash. Load AFTER dashboard.css */
+.brand-logo{width:40px;height:40px;border-radius:10px;flex:none;display:block}
+.brand-logo-sm{width:32px;height:32px;border-radius:8px}
+
+#splash{position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 50% 45%,#133A28,#0B1F16 65%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .6s}
+#splash.hide{opacity:0;pointer-events:none}
+.no-splash #splash{display:none}
+#splash .mark{width:min(48vw,200px);height:min(48vw,200px);overflow:visible}
+#splash .word{font:800 clamp(2rem,9vw,3rem)/1 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;letter-spacing:-.025em}
+#splash .w1{color:#fff;animation:cl-fromL .8s cubic-bezier(.2,.8,.2,1) 3.1s both}
+#splash .w2{color:#F2A81D;font-weight:500;animation:cl-fromR .8s cubic-bezier(.2,.8,.2,1) 3.1s both}
+#splash .tag{margin:0;color:#9DB0A5;font:400 1rem/1.4 system-ui,sans-serif;animation:cl-fade .8s ease 3.9s both}
+#splash .d{fill:#33D08A;transform-box:fill-box;transform-origin:center;animation:cl-conv 1.6s cubic-bezier(.65,0,.25,1) both;animation-delay:calc(var(--i)*.13s)}
+#splash .ring{fill:none;stroke:#F2A81D;stroke-width:3;stroke-dasharray:138.23;animation:cl-draw .9s ease-in-out 1.9s both}
+#splash .coin{fill:#F2A81D;transform-box:fill-box;transform-origin:center;animation:cl-pop .7s cubic-bezier(.3,1.6,.5,1) 2.6s both}
+#splash .rip{fill:none;stroke:#F2A81D;stroke-width:1.5;opacity:0;transform-box:fill-box;transform-origin:center;animation:cl-rip 1.1s ease-out 2.6s both}
+@keyframes cl-conv{0%{transform:translate(var(--x),var(--y)) scale(.35);opacity:0}15%{opacity:1}
+  55%{transform:translate(calc(var(--x)*.35 - var(--y)*.22),calc(var(--y)*.35 + var(--x)*.22)) scale(.8)}100%{transform:none;opacity:1}}
+@keyframes cl-draw{from{stroke-dashoffset:138.23;opacity:0}10%{opacity:1}to{stroke-dashoffset:0;opacity:1}}
+@keyframes cl-pop{from{transform:scale(0)}to{transform:scale(1)}}
+@keyframes cl-rip{from{transform:scale(1);opacity:.9}to{transform:scale(5);opacity:0}}
+@keyframes cl-fromL{from{transform:translateX(-60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes cl-fromR{from{transform:translateX(60px);opacity:0}to{transform:none;opacity:1}}
+@keyframes cl-fade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){#splash{display:none}}

@@ -1,0 +1,230 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loans | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+
+<body class="dashboard-page loans-page">
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <a href="{% url 'dashboard' %}" class="brand">
+            <img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="40" height="40">
+            <span class="brand-text">
+                <strong>ChamaLink</strong>
+                <small>SAVINGS MANAGEMENT</small>
+            </span>
+        </a>
+
+        <p class="nav-heading">WORKSPACE</p>
+
+        <nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link">
+                <span class="nav-icon">⌂</span> Dashboard
+            </a>
+            <a href="{% url 'members' %}" class="nav-link">
+                <span class="nav-icon">♧</span> Members
+            </a>
+            <a href="{% url 'contributions' %}" class="nav-link">
+                <span class="nav-icon">↗</span> Contributions
+            </a>
+            <a href="{% url 'loans' %}" class="nav-link active">
+                <span class="nav-icon">▤</span> Loans
+            </a>
+            {% if request.user.is_superuser or membership.role == 'CHAIRPERSON' or membership.role == 'TREASURER' or membership.role == 'SECRETARY' %}<a href="{% url 'financial_reports' %}" class="nav-link">
+                <span class="nav-icon">▥</span> Financial Reports
+            </a>{% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <strong>Need assistance?</strong>
+                <p>Manage your group finances with confidence.</p>
+            </div>
+            <a href="{% url 'app_settings' %}" class="settings-link">
+                ⚙ Settings
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div class="breadcrumb">
+                <span>Workspace</span>
+                <span class="breadcrumb-separator">/</span>
+                <strong>Loans</strong>
+            </div>
+
+            <div class="topbar-right">
+                <div class="user-profile">
+                    <div class="profile-avatar">
+                        {% if request.user.user_profile.profile_picture %}
+                            <img src="{{ request.user.user_profile.profile_picture.url }}"
+                                 alt="Profile picture">
+                        {% else %}
+                            {{ request.user.username|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="profile-details">
+                        <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                        <span>Account</span>
+                    </div>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-body">
+            <section class="welcome-row">
+                <div>
+                    <p class="page-eyebrow">FINANCIAL MANAGEMENT</p>
+                    <h1>Loan Management</h1>
+                    <p>Review loan applications, repayments and outstanding balances.</p>
+                </div>
+                <a href="{% url 'apply_for_loan' %}" class="primary-button">
+                    + Apply for Loan
+                </a>
+            </section>
+
+            <section class="stats-grid loans-stats">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Loan Records</span>
+                        <span class="stat-icon">▤</span>
+                    </div>
+                    <h2 class="stat-value">{{ loans|length }}</h2>
+                    <p class="stat-bottom">Loans registered in the system</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Pending Applications</span>
+                        <span class="stat-icon">◷</span>
+                    </div>
+                    <h2 class="stat-value">
+                        {% with pending_count=0 %}
+                            {{ pending_count }}
+                        {% endwith %}
+                    </h2>
+                    <p class="stat-bottom">Check the table for applications awaiting action</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Repayments</span>
+                        <span class="stat-icon">↗</span>
+                    </div>
+                    <h2 class="stat-value">Manage</h2>
+                    <p class="stat-bottom">Record and review loan repayments</p>
+                </article>
+            </section>
+
+            <section class="info-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Loan Records</h2>
+                        <p>Review loan details and pending applications.</p>
+                    </div>
+                    {% if can_record_repayment %}<a href="{% url 'record_loan_repayment' %}" class="secondary-button">
+                        + Record Repayment
+                    </a>{% endif %}
+                </div>
+
+                {% if loans %}
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Chama</th>
+                                <th>Loan Amount</th>
+                                <th>Interest</th>
+                                <th>Total Repaid</th>
+                                <th>Outstanding</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for loan in loans %}
+                            <tr>
+                                <td><strong>{{ loan.membership.full_name }}</strong></td>
+                                <td>{{ loan.membership.chama.name }}</td>
+                                <td>KSh {{ loan.amount|floatformat:2 }}</td>
+                                <td>{{ loan.interest_rate }}%</td>
+                                <td>KSh {{ loan.total_repaid|floatformat:2 }}</td>
+                                <td>KSh {{ loan.outstanding_balance|floatformat:2 }}</td>
+                                <td>
+                                    <span class="loan-status
+                                        {% if loan.status == 'PENDING' %}status-pending
+                                        {% elif loan.status == 'APPROVED' %}status-approved
+                                        {% elif loan.status == 'REJECTED' %}status-rejected
+                                        {% elif loan.status == 'PAID' %}status-paid
+                                        {% else %}status-default{% endif %}">
+                                        {{ loan.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if loan.due_date %}
+                                        {{ loan.due_date|date:"d M Y" }}
+                                    {% else %}
+                                        Not set
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if loan.status == 'PENDING' and can_approve %}
+                                    <div class="loan-action-buttons">
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loan_id" value="{{ loan.id }}">
+                                            <button type="submit" name="action" value="approve"
+                                                    class="loan-approve-button">Approve</button>
+                                        </form>
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="loan_id" value="{{ loan.id }}">
+                                            <button type="submit" name="action" value="reject"
+                                                    class="loan-reject-button">Reject</button>
+                                        </form>
+                                    </div>
+                                    {% else %}
+                                        <span class="no-action">No action</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">▤</div>
+                    <h3>No loan records yet</h3>
+                    <p>When a member applies for a loan, the application will appear here.</p>
+                    <a href="{% url 'apply_for_loan' %}" class="primary-button">
+                        + Apply for Loan
+                    </a>
+                </div>
+                {% endif %}
+            </section>
+
+            <footer class="dashboard-footer">
+                <span>© {% now "Y" %} Chama Link</span>
+                <span>Smarter savings. Stronger communities.</span>
+            </footer>
+        </div>
+    </main>
+</div>
+</body>
+</html>

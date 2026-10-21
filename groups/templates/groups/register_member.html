@@ -1,0 +1,87 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Member | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body class="registration-page">
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+
+    <header class="registration-header">
+        <div>
+            <h1>Chama Link</h1>
+            <p>Manage your chama with confidence.</p>
+        </div>
+        <a href="{% url 'members' %}" class="back-link">
+            View Members
+        </a>
+    </header>
+
+    <main class="registration-container">
+        <div class="registration-heading">
+            <p class="eyebrow">MEMBERSHIP MANAGEMENT</p>
+            <h2>Register a New Member</h2>
+            <p>Add a member to your chama by completing the details below.</p>
+        </div>
+
+        <section class="registration-card">
+            <h3>Member Information</h3>
+            <p class="form-description">
+                Enter accurate details for your records.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="form-errors">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                {% for field in form %}
+                    <div class="form-group">
+                        <label for="{{ field.id_for_label }}">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                            <small>{{ field.help_text }}</small>
+                        {% endif %}
+
+                        {% for error in field.errors %}
+                            <small class="field-error">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+
+                <div class="form-actions">
+                    <a href="{% url 'members' %}" class="cancel-button">
+                        Cancel
+                    </a>
+                    <button type="submit" class="submit-button">
+                        Register Member
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <p class="registration-footer">
+            Chama Link &mdash; Simple, organised chama management.
+        </p>
+    </main>
+
+</body>
+</html>

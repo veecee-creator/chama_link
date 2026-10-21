@@ -1,0 +1,59 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Member | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body class="registration-page">
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+
+    <header class="registration-header">
+        <div>
+            <h1>Chama Link</h1>
+            <p>Member management</p>
+        </div>
+        <a href="{% url 'members' %}" class="back-link">Back to Members</a>
+    </header>
+
+    <main class="registration-container">
+        <div class="registration-heading">
+            <p class="eyebrow">MEMBER MANAGEMENT</p>
+            <h2>Delete Member</h2>
+            <p>Please confirm this action.</p>
+        </div>
+
+        <section class="registration-card">
+            <h3>Are you sure?</h3>
+            <p>
+                You are about to delete
+                <strong>{{ member.full_name }}</strong>
+                from Chama Link.
+            </p>
+            <p>This action cannot be undone.</p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-actions">
+                    <a href="{% url 'members' %}" class="cancel-button">
+                        Cancel
+                    </a>
+                    <button type="submit" class="delete-button">
+                        Yes, Delete Member
+                    </button>
+                </div>
+            </form>
+        </section>
+    </main>
+
+</body>
+</html>

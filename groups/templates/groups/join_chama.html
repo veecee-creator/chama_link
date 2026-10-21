@@ -1,0 +1,37 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Join {{ chama.name }} | ChamaLink</title>
+    <link rel="stylesheet" href="{% static 'groups/landing.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/directory.css' %}">
+</head>
+<body>
+    {% if request.user.is_authenticated %}
+    <div class="page-utility">
+        <a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form>
+    </div>
+    {% endif %}
+    <header class="site-header"><a class="wordmark" href="{% url 'dashboard' %}">Chama<span>Link</span></a></header>
+    <main class="join-card">
+        <p class="eyebrow">CLAIM YOUR MEMBERSHIP</p>
+        <h1>Join {{ chama.name }}</h1>
+        {% if messages %}<div class="messages">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}
+        {% if invite_token and invited_membership %}
+            <p>You have been invited as <strong>{{ invited_membership.full_name }}</strong>. Confirm to link this membership to your account.</p>
+            <form method="post">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite_token }}"><button class="button" type="submit">Accept invitation</button></form>
+        {% else %}
+            <p>Enter the National ID used when registering you, or ask your chairperson for a one-time invitation link.</p>
+            <form method="post">{% csrf_token %}<label for="national-id">National ID</label><input id="national-id" name="national_id" required autocomplete="off"><button class="button" type="submit">Verify and join</button></form>
+        {% endif %}
+        <a class="back-link" href="{% url 'chama_directory' %}">Back to chama search</a>
+    </main>
+</body>
+</html>

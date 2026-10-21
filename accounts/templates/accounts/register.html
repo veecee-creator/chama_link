@@ -1,0 +1,45 @@
+{% load static %}
+
+{% load static socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Chama Manager</title>
+    <link rel="stylesheet" href="{% static 'accounts/auth.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">Chama Manager</div>
+        <p class="subtitle">Manage your savings group with confidence.</p>
+
+        <h1>Create Your Account</h1>
+
+        <form method="POST">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Create Account</button>
+        </form>
+        {% if google_oauth_enabled %}
+        <div class="auth-divider"><span>or</span></div>
+        <form method="post" action="{% provider_login_url 'google' %}">{% csrf_token %}<button class="google-button" type="submit"><span>G</span> Continue with Google</button></form>
+        {% endif %}
+
+        <div class="auth-links">
+            Already have an account?
+            <a href="{% url 'login' %}">Login</a>
+
+            <br>
+
+            <a class="dashboard-link" href="{% url 'landing' %}">
+                Back to ChamaLink
+            </a>
+        </div>
+    </div>
+</body>
+</html>

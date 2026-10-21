@@ -1,0 +1,127 @@
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 25px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Segoe UI", Arial, sans-serif;
+    color: #24352b;
+    background: #f3f7f4;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 460px;
+    padding: 35px;
+    background: #ffffff;
+    border: 1px solid #e1eae3;
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(26, 70, 43, 0.09);
+}
+
+.logo {
+    text-align: center;
+    color: #176b42;
+    font-size: 29px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #718076;
+    line-height: 1.6;
+    margin-bottom: 28px;
+}
+
+h1 {
+    text-align: center;
+    color: #183d29;
+    font-size: 24px;
+    margin-bottom: 25px;
+}
+
+form p {
+    margin-bottom: 17px;
+}
+
+form label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccd8cf;
+    border-radius: 7px;
+    font-size: 15px;
+    background: #ffffff;
+}
+
+form input:focus {
+    outline: 2px solid #b4dfc2;
+    border-color: #176b42;
+}
+
+.helptext {
+    display: block;
+    margin-top: 6px;
+    color: #718076;
+    font-size: 12px;
+}
+
+.errorlist {
+    color: #b42318;
+    font-size: 13px;
+    padding-left: 18px;
+}
+
+button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 13px;
+    border: none;
+    border-radius: 7px;
+    background: #176b42;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #105332;
+}
+
+.auth-links {
+    margin-top: 24px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 2;
+}
+
+.auth-links a {
+    color: #176b42;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 25px 20px;
+    }
+}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:22px 0;color:#75837b;font-size:13px}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#e5ece7;flex:1}.google-button{height:48px;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #d9e1dc;border-radius:8px;background:#fff;color:#26342d;text-decoration:none;font-weight:600}.google-button span{font:700 18px Arial;color:#4285f4}

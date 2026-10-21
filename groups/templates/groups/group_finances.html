@@ -1,0 +1,64 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Group Finances | ChamaLink</title>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+<body class="dashboard-page">
+<div class="app-layout">
+    <aside class="sidebar">
+        <a href="{% url 'dashboard' %}" class="brand"><img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="40" height="40"><span>Chama<span class="brand-light">Link</span><small>GROUP FINANCES</small></span></a>
+        <p class="nav-heading">WORKSPACE</p>
+        <nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link"><span class="nav-icon">⌂</span> Dashboard</a>
+            <a href="{% url 'members' %}" class="nav-link"><span class="nav-icon">♙</span> Members</a>
+            <a href="{% url 'contributions' %}" class="nav-link"><span class="nav-icon">↗</span> Contributions</a>
+            <a href="{% url 'loans' %}" class="nav-link"><span class="nav-icon">⇄</span> Loans</a>
+            <a href="{% url 'group_finances' %}" class="nav-link active"><span class="nav-icon">▤</span> Income, expenses & fines</a>
+            {% if can_view_report %}<a href="{% url 'financial_reports' %}" class="nav-link"><span class="nav-icon">▥</span> Financial Reports</a>{% endif %}
+        </nav>
+    </aside>
+    <main class="main-content">
+        <header class="topbar no-print">
+            <div class="breadcrumb">Workspace <span>/</span> <strong>Group finances</strong></div>
+            <div class="topbar-right"><div class="user-profile"><div class="user-info"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><small>{{ chama.name }}</small></div><form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div></div>
+        </header>
+        <section class="dashboard-body">
+            <section class="welcome-row"><div><p class="eyebrow">ACCOUNTABILITY</p><h1>Income, expenses & fines</h1><p>Keep group cash movements and member penalties visible in one place.</p></div></section>
+            {% if messages %}<div class="messages">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+            <section class="stats-grid">
+                <article class="stat-card"><span class="stat-label">Other income</span><h2 class="stat-value">KSh {{ income|floatformat:2 }}</h2></article>
+                <article class="stat-card"><span class="stat-label">Expenses</span><h2 class="stat-value">KSh {{ expenses|floatformat:2 }}</h2></article>
+                <article class="stat-card"><span class="stat-label">Net other cashflow</span><h2 class="stat-value">KSh {{ net_other_income|floatformat:2 }}</h2></article>
+                <article class="stat-card"><span class="stat-label">Outstanding fines</span><h2 class="stat-value">{{ outstanding_fines|length }}</h2></article>
+            </section>
+            {% if can_manage %}
+            <section class="actions-grid">
+                <article class="info-panel"><h2>Record income or expense</h2><p>Use a clear category and transaction date for reports.</p><form method="post">{% csrf_token %}<input type="hidden" name="form_type" value="cashflow">{{ cashflow_form.as_p }}<button class="primary-button" type="submit">Save entry</button></form></article>
+                <article class="info-panel"><h2>Issue a fine</h2><p>Record a group-approved fine against a member.</p><form method="post">{% csrf_token %}<input type="hidden" name="form_type" value="fine">{{ fine_form.as_p }}<button class="primary-button" type="submit">Issue fine</button></form></article>
+                <article class="info-panel"><h2>Record fine payment</h2><p>Partial payments are supported; the outstanding amount updates automatically.</p><form method="post">{% csrf_token %}<input type="hidden" name="form_type" value="fine_payment">{{ payment_form.as_p }}<button class="primary-button" type="submit">Record payment</button></form></article>
+            </section>
+            {% endif %}
+            {% if chama.savings_model == 'MERRY_GO_ROUND' %}
+            <section class="info-panel">
+                <div class="panel-header"><div><h2>Merry-go-round rotation</h2><p>Members contribute the scheduled amount and receive one pooled payout in turn.</p></div></div>
+                {% if not rotation_payouts %}
+                    {% if can_manage %}<form method="post">{% csrf_token %}<input type="hidden" name="form_type" value="rotation_setup"><button class="primary-button" type="submit">Create payout rotation</button></form>{% else %}<p>The treasurer can create the payout order once at least two active members are registered.</p>{% endif %}
+                {% else %}
+                    <div class="table-wrapper"><table class="data-table"><thead><tr><th>Turn</th><th>Recipient</th><th>Scheduled</th><th>Expected pot</th><th>Status</th>{% if can_manage %}<th>Action</th>{% endif %}</tr></thead><tbody>
+                    {% for payout in rotation_payouts %}<tr><td>{{ payout.turn_number }}</td><td>{{ payout.recipient.full_name }}</td><td>{{ payout.scheduled_date|date:"d M Y" }}</td><td>KSh {{ payout.amount|floatformat:2 }}</td><td>{{ payout.get_status_display }}</td>{% if can_manage %}<td>{% if payout.status == 'PENDING' %}<form method="post">{% csrf_token %}<input type="hidden" name="form_type" value="mark_payout_paid"><input type="hidden" name="payout_id" value="{{ payout.id }}"><button class="secondary-button" type="submit">Record paid</button></form>{% else %}Paid {{ payout.paid_at|date:"d M Y" }}{% endif %}</td>{% endif %}</tr>{% endfor %}
+                    </tbody></table></div>
+                {% endif %}
+            </section>
+            {% endif %}
+            <section class="info-panel"><div class="panel-header"><div><h2>Group cashflow</h2><p>Income and expenses recorded for {{ chama.name }}.</p></div></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Description</th><th>Amount</th><th>Reference</th></tr></thead><tbody>{% for entry in entries %}<tr><td>{{ entry.entry_date|date:"d M Y" }}</td><td>{{ entry.get_entry_type_display }}</td><td>{{ entry.category }}</td><td>{{ entry.description }}</td><td>KSh {{ entry.amount|floatformat:2 }}</td><td>{{ entry.reference|default:"—" }}</td></tr>{% empty %}<tr><td colspan="6">No income or expense entries yet.</td></tr>{% endfor %}</tbody></table></div></section>
+            <section class="info-panel"><div class="panel-header"><div><h2>Member fines</h2><p>Balances remain visible to the member and chama officials.</p></div></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Member</th><th>Reason</th><th>Issued</th><th>Due date</th><th>Fine</th><th>Paid</th><th>Balance</th></tr></thead><tbody>{% for fine in fines %}<tr><td>{{ fine.membership.full_name }}</td><td>{{ fine.get_category_display }}{% if fine.description %} · {{ fine.description }}{% endif %}</td><td>{{ fine.issued_at|date:"d M Y" }}</td><td>{{ fine.due_date|date:"d M Y"|default:"—" }}</td><td>KSh {{ fine.amount|floatformat:2 }}</td><td>KSh {{ fine.total_paid|floatformat:2 }}</td><td>KSh {{ fine.balance|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="7">No fines recorded.</td></tr>{% endfor %}</tbody></table></div></section>
+        </section>
+    </main>
+</div>
+</body>
+</html>

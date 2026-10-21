@@ -1,0 +1,259 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chama Link | Members</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+
+<body class="dashboard-page">
+<div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="40" height="40">
+            <div>
+                Chama <span class="brand-light">Link</span>
+                <small>GROUP MANAGEMENT</small>
+            </div>
+        </div>
+
+        <p class="nav-heading">WORKSPACE</p>
+
+        <nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link">
+                <span class="nav-icon">⌂</span>
+                Dashboard
+            </a>
+
+            <a href="{% url 'members' %}" class="nav-link active">
+                <span class="nav-icon">♙</span>
+                Members
+            </a>
+
+            <a href="{% url 'contributions' %}" class="nav-link">
+                <span class="nav-icon">▤</span>
+                Contributions
+            </a>
+
+            <a href="{% url 'loans' %}" class="nav-link">
+                <span class="nav-icon">⇄</span>
+                Loans
+            </a>
+
+            {% if request.user.is_superuser or membership.role == 'CHAIRPERSON' or membership.role == 'TREASURER' or membership.role == 'SECRETARY' %}<a href="{% url 'financial_reports' %}" class="nav-link">
+                <span class="nav-icon">▥</span>
+                Financial Reports
+            </a>{% endif %}
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <div class="help-symbol">?</div>
+                <strong>Need assistance?</strong>
+                <p>Manage your group and keep your records organised.</p>
+                <a href="{% url 'app_settings' %}">Account settings →</a>
+            </div>
+
+            <p class="sidebar-footer">Chama Link © 2026</p>
+        </div>
+    </aside>
+
+    <!-- Main application area -->
+    <div class="main-content">
+
+        <!-- Top navigation -->
+        <header class="topbar">
+            <div class="mobile-brand">
+                <img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="40" height="40">
+                <strong>Chama Link</strong>
+            </div>
+
+            <div class="breadcrumb">
+                Main Menu <span>/</span>
+                <strong>Members</strong>
+            </div>
+
+            <div class="topbar-right">
+               <a href="{% url 'app_settings' %}" class="settings-link">
+    Settings
+</a>
+
+                <div class="user-profile">
+                    <a href="{% url 'app_settings' %}" class="avatar-link">
+                        {% if request.user.user_profile.profile_picture %}
+                            <img
+                                src="{{ request.user.user_profile.profile_picture.url }}"
+                                alt="Profile picture"
+                                class="avatar"
+                            >
+                        {% else %}
+                            <div class="avatar avatar-fallback">
+                                {{ request.user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                    </a>
+
+                    <div class="user-info">
+                        <strong>{{ request.user.username }}</strong>
+                        <small>Chama Link Account</small>
+                    </div>
+                </div>
+
+                <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form>
+            </div>
+        </header>
+
+        <!-- Members content -->
+        <main class="dashboard-body">
+
+            <section class="welcome-row">
+                <div>
+                    <p class="eyebrow">GROUP MANAGEMENT</p>
+                    <h1>Members</h1>
+                    <p>View and manage registered members in your chama.</p>
+                </div>
+
+                {% if can_manage_members %}<a href="{% url 'register_member' %}" class="primary-button">
+                    <span>+</span> Register Member
+                </a>{% endif %}
+            </section>
+
+            {% if invite_url %}
+            <section class="info-panel invite-panel" aria-live="polite">
+                <h2>Invitation ready for {{ invite_member_name }}</h2>
+                <p>Share this one-time link with the member. It expires after seven days.</p>
+                <div class="invite-link-row">
+                    <input id="member-invite-link" class="form-input" type="text" readonly value="{{ invite_url }}" aria-label="Member invitation link">
+                    <button type="button" class="secondary-button" onclick="const field=document.getElementById('member-invite-link');field.select();navigator.clipboard?.writeText(field.value);">Copy link</button>
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Member summary -->
+            <section class="stats-grid">
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Registered Members</span>
+                        <span class="stat-icon green">♙</span>
+                    </div>
+                    <div class="stat-value">{{ members|length }}</div>
+                    <p class="stat-bottom">Membership records</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Member Management</span>
+                        <span class="stat-icon blue">▤</span>
+                    </div>
+                    <div class="stat-value">Records</div>
+                    <p class="stat-bottom">Review and update member details</p>
+                </article>
+
+                <article class="stat-card">
+                    <div class="stat-top">
+                        <span class="stat-label">Account</span>
+                        <span class="stat-icon purple">✓</span>
+                    </div>
+                    <div class="stat-value">Active</div>
+                    <p class="stat-bottom">Manage your chama membership</p>
+                </article>
+            </section>
+
+            <!-- Members table -->
+            <section class="info-panel" style="margin-top: 28px;">
+                <div class="panel-heading">
+                    <div>
+                        <h2>Registered Memberships</h2>
+                        <p>View member records and available actions.</p>
+                    </div>
+                    <span class="panel-badge">MEMBERS</span>
+                </div>
+
+                {% if members %}
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Member</th>
+                                    <th>Phone</th>
+                                    <th>National ID</th>
+                                    <th>Role</th>
+                                    <th>Chama</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {% for member in members %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ member.full_name }}</td>
+                                        <td>{{ member.phone_number }}</td>
+                                        <td>{% if member.national_id %}••••{{ member.national_id|slice:"-4:" }}{% else %}—{% endif %}</td>
+                                        <td>{{ member.get_role_display }}</td>
+                                        <td>{{ member.chama.name }}</td>
+                                        <td>
+                                            <div class="member-actions">
+                                                {% if can_manage_members %}
+                                                {% if not member.user_id and member.is_active %}
+                                                <form method="post" action="{% url 'issue_member_invite' member.id %}" class="member-invite-form">
+                                                    {% csrf_token %}<button type="submit" class="edit-button">Create invite</button>
+                                                </form>
+                                                {% endif %}
+                                                <a
+                                                    href="{% url 'edit_member' member.id %}"
+                                                    class="edit-button"
+                                                >Edit</a>
+
+                                                <a
+                                                    href="{% url 'delete_member' member.id %}"
+                                                    class="delete-link"
+                                                >Delete</a>
+                                                {% endif %}
+
+                                                {% if can_view_member_finances or member.user_id == request.user.id %}
+                                                <a
+                                                    href="{% url 'member_financial_history' member.id %}"
+                                                    class="edit-button"
+                                                >Financial History</a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No members yet</h3>
+                        <p>Register your first member to get started.</p>
+                        <a href="{% url 'register_member' %}" class="primary-button">
+                            + Register Member
+                        </a>
+                    </div>
+                {% endif %}
+            </section>
+
+            <footer class="page-footer">
+                <span>© 2026 Chama Link. All rights reserved.</span>
+                <a href="{% url 'app_settings' %}">Account Settings</a>
+            </footer>
+
+        </main>
+    </div>
+</div>
+</body>
+</html>

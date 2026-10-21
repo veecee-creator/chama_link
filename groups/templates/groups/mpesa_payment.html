@@ -1,0 +1,211 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M-Pesa Payments | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+
+    <style>
+        .payment-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .payment-container h1 {
+            margin-bottom: 10px;
+            color: #173b32;
+        }
+
+        .payment-container p {
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .payment-form label {
+            display: block;
+            margin: 16px 0 7px;
+            font-weight: 600;
+        }
+
+        .payment-form input,
+        .payment-form select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            box-sizing: border-box;
+        }
+
+        .payment-button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+            border: none;
+            border-radius: 7px;
+            background: #16834a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .payment-button:hover {
+            background: #106638;
+        }
+
+        .notice {
+            padding: 12px;
+            margin-top: 16px;
+            border-radius: 7px;
+            background: #fff4d6;
+            color: #674d00;
+        }
+
+        #loan-field {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-utility no-print"><a class="page-logo" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="36" height="36"><strong>ChamaLink</strong></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form></div>
+
+    <div class="payment-container">
+        <h1>M-Pesa Payments</h1>
+        <p>Pay your Chama contribution or repay an approved loan.</p>
+
+        {% if demo_mode %}
+        <div class="notice">
+            Payments are disabled in this public demo. The member and payment
+            history shown elsewhere is fictional sample data.
+        </div>
+        {% else %}
+        <div class="notice">
+            Sandbox testing only. Do not enter your M-Pesa PIN anywhere
+            on this website. Enter it only in the official phone prompt.
+        </div>
+
+        <form
+            class="payment-form"
+            method="post"
+            action="{% url 'initiate_mpesa_payment' %}"
+        >
+            {% csrf_token %}
+
+            <label for="membership_id">Select Member</label>
+            <select id="membership_id" name="membership_id" required>
+                <option value="">-- Select a member --</option>
+                {% for member in members %}
+                    <option value="{{ member.id }}">
+                        {{ member.full_name }} — {{ member.chama.name }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="transaction_type">Payment Type</label>
+            <select
+                id="transaction_type"
+                name="transaction_type"
+                required
+            >
+                <option value="contribution">Chama Contribution</option>
+                <option value="loan_repayment">Loan Repayment</option>
+            </select>
+
+            <div id="loan-field">
+                <label for="loan_id">Select Approved Loan</label>
+                <select id="loan_id" name="loan_id">
+                    <option value="">-- Select a loan --</option>
+                    {% for loan in loans %}
+                        {% if loan.status == "APPROVED" %}
+                            <option
+                                value="{{ loan.id }}"
+                                data-member="{{ loan.membership_id }}"
+                            >
+                                Loan #{{ loan.id }} — {{ loan.membership.full_name }}
+                                — KSh {{ loan.outstanding_balance|floatformat:2 }} outstanding
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <label for="amount">Amount (KSh)</label>
+            <input
+                type="number"
+                id="amount"
+                name="amount"
+                min="1"
+                step="1"
+                placeholder="e.g. 500"
+                required
+            >
+
+            <label for="phone_number">M-Pesa Phone Number</label>
+            <input
+                type="tel"
+                id="phone_number"
+                name="phone_number"
+                placeholder="0712345678"
+                pattern="(\+?254|0)7[0-9]{8}|(\+?254|0)1[0-9]{8}"
+                required
+            >
+
+            <button class="payment-button" type="submit">
+                Request M-Pesa STK Push
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    {% if not demo_mode %}
+    <script>
+        const typeField = document.getElementById("transaction_type");
+        const loanField = document.getElementById("loan-field");
+        const loanSelect = document.getElementById("loan_id");
+        const memberSelect = document.getElementById("membership_id");
+
+        function updateLoanOptions() {
+            const isRepayment = typeField.value === "loan_repayment";
+
+            loanField.style.display = isRepayment ? "block" : "none";
+            loanSelect.required = isRepayment;
+
+            Array.from(loanSelect.options).forEach(option => {
+                if (!option.value) return;
+
+                option.hidden = isRepayment &&
+                    option.dataset.member !== memberSelect.value;
+            });
+
+            if (!isRepayment) {
+                loanSelect.value = "";
+            } else if (
+                loanSelect.selectedOptions.length &&
+                loanSelect.selectedOptions[0].hidden
+            ) {
+                loanSelect.value = "";
+            }
+        }
+
+        typeField.addEventListener("change", updateLoanOptions);
+        memberSelect.addEventListener("change", updateLoanOptions);
+
+        updateLoanOptions();
+    </script>
+    {% endif %}
+</body>
+</html>

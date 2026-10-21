@@ -1,0 +1,223 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
+    <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
+    <meta name="theme-color" content="#0F5B3A">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Reports | Chama Link</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'groups/chama-logo.css' %}">
+</head>
+
+<body class="dashboard-page financial-reports-page">
+<div class="app-layout">
+
+    <aside class="sidebar">
+        <a href="{% url 'dashboard' %}" class="brand">
+            <img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="ChamaLink logo" width="40" height="40">
+            <span class="brand-text">
+                <strong>ChamaLink</strong>
+                <small>SAVINGS MANAGEMENT</small>
+            </span>
+        </a>
+
+        <p class="nav-heading">WORKSPACE</p>
+
+        <nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link">
+                <span class="nav-icon">⌂</span> Dashboard
+            </a>
+            <a href="{% url 'members' %}" class="nav-link">
+                <span class="nav-icon">♧</span> Members
+            </a>
+            <a href="{% url 'contributions' %}" class="nav-link">
+                <span class="nav-icon">↗</span> Contributions
+            </a>
+            <a href="{% url 'loans' %}" class="nav-link">
+                <span class="nav-icon">▤</span> Loans
+            </a>
+            <a href="{% url 'financial_reports' %}" class="nav-link active">
+                <span class="nav-icon">▥</span> Financial Reports
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="help-card">
+                <strong>Need assistance?</strong>
+                <p>Manage your group finances with confidence.</p>
+            </div>
+            <a href="{% url 'app_settings' %}" class="settings-link">
+                ⚙ Settings
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar no-print">
+            <div class="breadcrumb">
+                <span>Workspace</span>
+                <span class="breadcrumb-separator">/</span>
+                <strong>Financial Reports</strong>
+            </div>
+
+            <div class="topbar-right">
+                <div class="user-profile">
+                    <div class="profile-avatar">
+                        {% if request.user.user_profile.profile_picture %}
+                            <img src="{{ request.user.user_profile.profile_picture.url }}"
+                                 alt="Profile picture">
+                        {% else %}
+                            {{ request.user.username|first|upper }}
+                        {% endif %}
+                    </div>
+                    <div class="profile-details">
+                        <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                        <span>Account</span>
+                    </div>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form>
+                </div>
+            </div>
+        </header>
+
+        <div class="dashboard-body">
+            <section class="welcome-row no-print">
+                <div>
+                    <p class="page-eyebrow">FINANCIAL MANAGEMENT</p>
+                    <h1>Financial Reports</h1>
+                    <p>Review contributions, loans, repayments and outstanding balances.</p>
+                </div>
+
+                {% if can_print_chama_report %}<button type="button" class="primary-button" onclick="window.print()">
+                    Print / Save as PDF
+                </button>{% endif %}
+            </section>
+
+            <section class="report-grid">
+                <article class="report-card">
+                    <p class="stat-label">Total Contributions</p>
+                    <h2>KSh {{ total_contributions|floatformat:2 }}</h2>
+                    <p class="report-description">Total recorded savings</p>
+                </article>
+
+                <article class="report-card">
+                    <p class="stat-label">Total Loans Issued</p>
+                    <h2>KSh {{ total_loans|floatformat:2 }}</h2>
+                    <p class="report-description">Total loan amounts issued</p>
+                </article>
+
+                <article class="report-card">
+                    <p class="stat-label">Total Loan Repayments</p>
+                    <h2>KSh {{ total_repayments|floatformat:2 }}</h2>
+                    <p class="report-description">Total repayments recorded</p>
+                </article>
+
+                <article class="report-card">
+                    <p class="stat-label">Outstanding Loan Balance</p>
+                    <h2>KSh {{ total_outstanding|floatformat:2 }}</h2>
+                    <p class="report-description">Remaining loan balances</p>
+                </article>
+                <article class="report-card">
+                    <p class="stat-label">Other Income</p>
+                    <h2>KSh {{ total_other_income|floatformat:2 }}</h2>
+                    <p class="report-description">Income entered outside contributions</p>
+                </article>
+                <article class="report-card">
+                    <p class="stat-label">Group Expenses</p>
+                    <h2>KSh {{ total_expenses|floatformat:2 }}</h2>
+                    <p class="report-description">Recorded chama expenditure</p>
+                </article>
+                <article class="report-card">
+                    <p class="stat-label">Outstanding Fines</p>
+                    <h2>KSh {{ total_fines_outstanding|floatformat:2 }}</h2>
+                    <p class="report-description">Unpaid member fines</p>
+                </article>
+            </section>
+
+            <section class="info-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Financial Summary by Chama</h2>
+                        <p>Compare contributions, loans and repayments across groups.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Chama Name</th>
+                                <th>Contributions (KSh)</th>
+                                <th>Loans Issued (KSh)</th>
+                                <th>Repayments (KSh)</th>
+                                <th>Outstanding (KSh)</th>
+                                <th>Other Income (KSh)</th>
+                                <th>Expenses (KSh)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in chama_reports %}
+                            <tr>
+                                <td><strong>{{ report.chama.name }}</strong></td>
+                                <td>KSh {{ report.contributions|floatformat:2 }}</td>
+                                <td>KSh {{ report.loans_issued|floatformat:2 }}</td>
+                                <td>KSh {{ report.repayments|floatformat:2 }}</td>
+                                <td>KSh {{ report.outstanding|floatformat:2 }}</td>
+                                <td>KSh {{ report.other_income|floatformat:2 }}</td>
+                                <td>KSh {{ report.expenses|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7">No chamas are available for reporting yet.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="info-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Recent Financial Activity</h2>
+                        <p>Recent payment records and loan decisions for accountability.</p>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead><tr><th>Date</th><th>Chama</th><th>Action</th><th>Details</th><th>Recorded by</th></tr></thead>
+                        <tbody>
+                            {% for activity in recent_activity %}
+                            <tr>
+                                <td>{{ activity.created_at|date:"d M Y, H:i" }}</td>
+                                <td>{{ activity.chama.name }}</td>
+                                <td><strong>{{ activity.action }}</strong></td>
+                                <td>{{ activity.description }}</td>
+                                <td>{{ activity.actor.get_full_name|default:activity.actor.username|default:"M-Pesa system" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5">No financial activity has been recorded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <p class="report-note">
+                Report generated {% now "d M Y, H:i" %}. Figures are based on
+                the financial records currently stored in Chama Link.
+            </p>
+
+            <footer class="dashboard-footer no-print">
+                <span>© {% now "Y" %} Chama Link</span>
+                <span>Smarter savings. Stronger communities.</span>
+            </footer>
+        </div>
+    </main>
+</div>
+</body>
+</html>
