@@ -11,6 +11,12 @@ credentials, or real member information. Do not add real records to this demo.
 - A demo login configured as secret `DEMO_USERNAME` and `DEMO_PASSWORD`
   environment variables. Set both in Render when prompted; use a unique
   password of at least 14 characters.
+- The configured demo login can exercise chairperson, treasurer, and secretary
+  actions in the seeded fictional chama. Regular accounts keep their chama role
+  permissions.
+- The dashboard links directly to group finances and M-Pesa payments. In demo
+  mode, the M-Pesa page is available to explore, but initiating real payments
+  is disabled.
 - No persistent media disk. Uploaded files can disappear on redeploy/restart.
 - Render free services may sleep when idle. Render's free PostgreSQL database
   expires after 30 days and has no backups, so this is for a temporary demo,

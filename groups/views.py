@@ -171,8 +171,18 @@ def get_user_membership(user, chama_id=None):
     return memberships.order_by('joined_at').first()
 
 
+def is_demo_tester(user):
+    """Allow the configured demo login to exercise every chama role."""
+    return (
+        getattr(user, 'is_authenticated', False)
+        and os.getenv('CHAMALINK_DEMO_MODE', '').lower() == 'true'
+        and bool(os.getenv('DEMO_USERNAME'))
+        and user.get_username() == os.getenv('DEMO_USERNAME')
+    )
+
+
 def is_chama_role(user, chama, *roles):
-    if user.is_superuser:
+    if user.is_superuser or is_demo_tester(user):
         return True
     return Membership.objects.filter(
         user=user, chama=chama, role__in=roles
@@ -181,7 +191,7 @@ def is_chama_role(user, chama, *roles):
 
 def is_chama_official(user, chama):
     """Check whether a user is an official of a particular chama."""
-    if user.is_superuser:
+    if user.is_superuser or is_demo_tester(user):
         return True
 
     return Membership.objects.filter(
