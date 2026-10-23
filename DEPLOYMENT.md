@@ -17,6 +17,11 @@ credentials, or real member information. Do not add real records to this demo.
 - The dashboard links directly to group finances and M-Pesa payments. In demo
   mode, the M-Pesa page is available to explore, but initiating real payments
   is disabled.
+- The seeded sample chama is on ChamaLink Plus so the goal and meeting tools
+  can be explored. Public group-plan requests are saved in Django Admin; set
+  `CHAMALINK_SALES_EMAIL` and the SMTP settings in Render to receive lead
+  notifications by email. Plus activation and billing are handled manually;
+  this demo does not charge groups online.
 - No persistent media disk. Uploaded files can disappear on redeploy/restart.
 - Render free services may sleep when idle. Render's free PostgreSQL database
   expires after 30 days and has no backups, so this is for a temporary demo,

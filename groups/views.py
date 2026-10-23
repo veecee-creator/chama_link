@@ -14,6 +14,7 @@ import requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.contrib.staticfiles import finders
 from django.core.exceptions import PermissionDenied
 from django.core import signing
@@ -42,6 +43,11 @@ from .models import (
     MemberFine,
     FinePayment,
     RotationPayout,
+    SavingsGoal,
+    GoalProgressEntry,
+    ChamaMeeting,
+    MeetingAttendance,
+    PlanInquiry,
 )
 
 from .forms import (
@@ -53,6 +59,13 @@ from .forms import (
     ChamaCashflowEntryForm,
     MemberFineForm,
     FinePaymentForm,
+    SavingsGoalForm,
+    GoalProgressForm,
+    ChamaMeetingForm,
+    MeetingMinutesForm,
+    MeetingAttendanceForm,
+    PlanInquiryForm,
+    normalize_national_id,
 )
 
 from .mpesa import initiate_stk_push
@@ -202,14 +215,208 @@ def is_chama_official(user, chama):
 
 
 def landing(request):
-    totals = {
-        'total_chamas': Chama.objects.count(),
-        'total_contributions': Contribution.objects.aggregate(
-            total=Sum('amount')
-        )['total'] or Decimal('0.00'),
-        'total_loans': Loan.objects.count(),
-    }
-    return render(request, 'groups/landing.html', totals)
+    return render(request, 'groups/landing.html')
+
+
+def selected_chama_for_user(request):
+    membership = get_user_membership(
+        request.user, request.session.get('active_chama_id')
+    )
+    if membership:
+        return membership.chama, membership
+    if request.user.is_superuser:
+        chama = Chama.objects.order_by('name').first()
+        if chama:
+            return chama, None
+    return None, None
+
+
+def plans(request):
+    if request.method == 'POST' and not request.user.is_authenticated:
+        return redirect('login')
+    chama, membership = (
+        selected_chama_for_user(request)
+        if request.user.is_authenticated else (None, None)
+    )
+    can_request = bool(
+        membership and is_chama_role(
+            request.user, membership.chama, 'CHAIRPERSON', 'TREASURER'
+        )
+    )
+    form = PlanInquiryForm()
+    if request.method == 'POST':
+        if not can_request:
+            raise PermissionDenied('Only a chairperson or treasurer can request a group plan.')
+        form = PlanInquiryForm(request.POST)
+        if form.is_valid():
+            inquiry = form.save(commit=False)
+            inquiry.chama = membership.chama
+            inquiry.requested_by = request.user
+            inquiry.save()
+            if settings.CHAMALINK_SALES_EMAIL:
+                send_mail(
+                    subject=f'New ChamaLink Plus inquiry: {membership.chama.name}',
+                    message=(
+                        f'Group: {membership.chama.name}\n'
+                        f'Contact: {inquiry.contact_phone}\n'
+                        f'Email: {inquiry.contact_email or "Not provided"}\n\n'
+                        f'{inquiry.message or "No additional message."}'
+                    ),
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[settings.CHAMALINK_SALES_EMAIL],
+                    fail_silently=True,
+                )
+            messages.success(
+                request,
+                'Your ChamaLink Plus request is saved. Our team will follow up using the contact details you provided.',
+            )
+            return redirect('plans')
+
+    inquiries = PlanInquiry.objects.none()
+    if can_request:
+        inquiries = PlanInquiry.objects.filter(
+            chama=membership.chama, requested_by=request.user
+        )[:5]
+    return render(request, 'groups/plans.html', {
+        'chama': chama,
+        'membership': membership,
+        'form': form,
+        'can_request': can_request,
+        'inquiries': inquiries,
+        'has_premium_access': bool(chama and chama.has_premium_access),
+    })
+
+
+@login_required
+def savings_goals(request):
+    chama, membership = selected_chama_for_user(request)
+    if chama is None:
+        messages.info(request, 'Create or join a chama before setting group savings goals.')
+        return redirect('dashboard')
+    has_premium_access = chama.has_premium_access
+    can_manage = has_premium_access and is_chama_role(
+        request.user, chama, 'CHAIRPERSON', 'TREASURER'
+    )
+
+    goal_form = SavingsGoalForm()
+    progress_form = GoalProgressForm()
+    if request.method == 'POST':
+        if not has_premium_access:
+            messages.info(request, 'ChamaLink Plus includes group goal tracking.')
+            return redirect('plans')
+        if not can_manage:
+            raise PermissionDenied('Only the chairperson or treasurer can update group goals.')
+        action = request.POST.get('action')
+        if action == 'create_goal':
+            goal_form = SavingsGoalForm(request.POST)
+            if goal_form.is_valid():
+                goal = goal_form.save(commit=False)
+                goal.chama = chama
+                goal.created_by = request.user
+                goal.save()
+                messages.success(request, f'“{goal.title}” has been added to your group goals.')
+                return redirect('savings_goals')
+        elif action == 'record_progress':
+            goal = get_object_or_404(SavingsGoal, pk=request.POST.get('goal_id'), chama=chama)
+            progress_form = GoalProgressForm(request.POST)
+            if progress_form.is_valid():
+                entry = progress_form.save(commit=False)
+                entry.goal = goal
+                entry.recorded_by = request.user
+                entry.save()
+                messages.success(request, 'Goal progress updated. This planning tracker does not post a contribution or move money.')
+                return redirect('savings_goals')
+            goal_form = SavingsGoalForm()
+        else:
+            raise PermissionDenied('Unknown goal action.')
+
+    goals = SavingsGoal.objects.filter(chama=chama).prefetch_related(
+        'progress_entries__recorded_by'
+    )
+    return render(request, 'groups/savings_goals.html', {
+        'chama': chama,
+        'membership': membership,
+        'goals': goals,
+        'goal_form': goal_form,
+        'progress_form': progress_form,
+        'can_manage': can_manage,
+        'has_premium_access': has_premium_access,
+    })
+
+
+@login_required
+def meetings(request):
+    chama, membership = selected_chama_for_user(request)
+    if chama is None:
+        messages.info(request, 'Create or join a chama before planning meetings.')
+        return redirect('dashboard')
+    has_premium_access = chama.has_premium_access
+    can_manage = has_premium_access and is_chama_role(
+        request.user, chama, 'CHAIRPERSON', 'SECRETARY'
+    )
+
+    meeting_form = ChamaMeetingForm()
+    attendance_form = MeetingAttendanceForm()
+    attendance_form.fields['membership'].queryset = Membership.objects.filter(
+        chama=chama, is_active=True
+    ).order_by('full_name')
+
+    if request.method == 'POST':
+        if not has_premium_access:
+            messages.info(request, 'Meeting planning and attendance are included in ChamaLink Plus.')
+            return redirect('plans')
+        if not can_manage:
+            raise PermissionDenied('Only the chairperson or secretary can manage meeting records.')
+        action = request.POST.get('action')
+        if action == 'create_meeting':
+            meeting_form = ChamaMeetingForm(request.POST)
+            if meeting_form.is_valid():
+                meeting = meeting_form.save(commit=False)
+                meeting.chama = chama
+                meeting.created_by = request.user
+                meeting.save()
+                messages.success(request, 'Meeting added to the group calendar.')
+                return redirect('meetings')
+        elif action == 'save_minutes':
+            meeting = get_object_or_404(ChamaMeeting, pk=request.POST.get('meeting_id'), chama=chama)
+            minutes_form = MeetingMinutesForm(request.POST, instance=meeting)
+            if minutes_form.is_valid():
+                minutes_form.save()
+                messages.success(request, 'Meeting notes saved.')
+                return redirect('meetings')
+        elif action == 'record_attendance':
+            meeting = get_object_or_404(ChamaMeeting, pk=request.POST.get('meeting_id'), chama=chama)
+            attendance_form = MeetingAttendanceForm(request.POST)
+            attendance_form.fields['membership'].queryset = Membership.objects.filter(
+                chama=chama, is_active=True
+            )
+            if attendance_form.is_valid():
+                attendance = attendance_form.save(commit=False)
+                attendance.meeting = meeting
+                attendance.recorded_by = request.user
+                MeetingAttendance.objects.update_or_create(
+                    meeting=meeting,
+                    membership=attendance.membership,
+                    defaults={'status': attendance.status, 'recorded_by': request.user},
+                )
+                messages.success(request, 'Attendance saved.')
+                return redirect('meetings')
+        else:
+            raise PermissionDenied('Unknown meeting action.')
+
+    meeting_list = ChamaMeeting.objects.filter(chama=chama).prefetch_related(
+        'attendance__membership'
+    )
+    return render(request, 'groups/meetings.html', {
+        'chama': chama,
+        'membership': membership,
+        'meetings': meeting_list,
+        'meeting_form': meeting_form,
+        'attendance_form': attendance_form,
+        'minutes_form': MeetingMinutesForm(),
+        'can_manage': can_manage,
+        'has_premium_access': has_premium_access,
+    })
 
 
 @login_required
@@ -257,19 +464,44 @@ def join_chama(request, chama_id):
             messages.success(request, f'You joined {chama.name}.')
             return redirect('dashboard')
 
-        national_id = request.POST.get('national_id', '').strip()
-        member = Membership.objects.filter(chama=chama, national_id=national_id, user__isnull=True, is_active=True).first()
-        if not national_id or member is None:
-            messages.error(request, 'No unclaimed registration matched that National ID in this chama. Ask your chairperson for an invitation link.')
+        national_id = normalize_national_id(request.POST.get('national_id'))
+        if not national_id:
+            messages.error(request, 'Enter the National ID the chairperson used when registering you, or ask them to create a one-time invitation link.')
         else:
-            member.user = request.user
-            member.save(update_fields=['user'])
-            request.session['active_chama_id'] = chama.pk
-            messages.success(request, f'You joined {chama.name}.')
-            return redirect('dashboard')
+            # Normalize while scanning so older records containing spaces or
+            # hyphens still match IDs entered in the usual unformatted form.
+            with db_transaction.atomic():
+                candidates = list(
+                    Membership.objects.select_for_update().filter(
+                        chama=chama, is_active=True,
+                    ).exclude(national_id__isnull=True)
+                )
+                matches = [
+                    candidate for candidate in candidates
+                    if normalize_national_id(candidate.national_id) == national_id
+                ]
+                member = matches[0] if len(matches) == 1 else None
+
+                if member is None:
+                    messages.error(request, 'We could not match that ID to an active member record in this chama. Check that the chairperson entered the same ID, or ask them to update your record or create a one-time invitation link.')
+                elif member.user_id == request.user.id:
+                    request.session['active_chama_id'] = chama.pk
+                    messages.info(request, f'Your account is already linked to {chama.name}.')
+                    return redirect('dashboard')
+                elif member.user_id is not None:
+                    messages.error(request, 'This member record is already linked to an account. Ask the chairperson to check the registration or issue a new invitation for the correct member record.')
+                elif Membership.objects.filter(user=request.user, chama=chama).exists():
+                    messages.error(request, 'Your account is already linked to a member record in this chama.')
+                else:
+                    member.user = request.user
+                    member.save(update_fields=['user'])
+                    request.session['active_chama_id'] = chama.pk
+                    messages.success(request, f'You joined {chama.name}.')
+                    return redirect('dashboard')
     return render(request, 'groups/join_chama.html', {
         'chama': chama, 'invite_token': invite_token,
         'invited_membership': invited_membership,
+        'entered_national_id': request.POST.get('national_id', ''),
     })
 
 

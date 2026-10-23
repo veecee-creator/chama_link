@@ -20,6 +20,10 @@ from groups.models import (
     MemberFine,
     Membership,
     RotationPayout,
+    SavingsGoal,
+    GoalProgressEntry,
+    ChamaMeeting,
+    MeetingAttendance,
 )
 
 
@@ -56,8 +60,13 @@ class Command(BaseCommand):
                 "savings_model": "MERRY_GO_ROUND",
                 "contribution_frequency": "MONTHLY",
                 "contribution_due_day": 5,
+                "plan": "PLUS",
             },
         )
+        if chama.plan != "PLUS" or chama.premium_until is not None:
+            chama.plan = "PLUS"
+            chama.premium_until = None
+            chama.save(update_fields=["plan", "premium_until"])
 
         sample_members = [
             ("Amina Demo", "0700000001", "CHAIRPERSON", demo_user),
@@ -138,6 +147,40 @@ class Command(BaseCommand):
                     "scheduled_date": timezone.localdate() + timedelta(days=30 * index),
                     "amount": chama.contribution_amount * len(members),
                 },
+            )
+
+        goal, _ = SavingsGoal.objects.get_or_create(
+            chama=chama,
+            title="School fees fund",
+            defaults={
+                "description": "A shared plan to support members' school costs.",
+                "target_amount": Decimal("120000.00"),
+                "target_date": timezone.localdate() + timedelta(days=90),
+                "created_by": demo_user,
+            },
+        )
+        GoalProgressEntry.objects.get_or_create(
+            goal=goal,
+            note="Starting milestone",
+            defaults={"amount": Decimal("32500.00"), "recorded_by": demo_user},
+        )
+
+        meeting, _ = ChamaMeeting.objects.get_or_create(
+            chama=chama,
+            title="Monthly chama check-in",
+            defaults={
+                "meeting_date": timezone.now() - timedelta(days=7),
+                "location": "Demo meeting room",
+                "agenda": "Review contributions, upcoming loans and the group goal.",
+                "minutes": "Members agreed to keep monthly contributions on schedule.",
+                "created_by": demo_user,
+            },
+        )
+        for member in members:
+            MeetingAttendance.objects.get_or_create(
+                meeting=meeting,
+                membership=member,
+                defaults={"status": "PRESENT", "recorded_by": demo_user},
             )
 
         for entry_type, category, description, amount in [

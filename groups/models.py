@@ -1,6 +1,9 @@
 
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.contrib.auth.models import User
+from django.utils import timezone
+from decimal import Decimal
 
 
 class Chama(models.Model):
@@ -11,6 +14,10 @@ class Chama(models.Model):
     CONTRIBUTION_FREQUENCIES = [
         ('WEEKLY', 'Weekly'),
         ('MONTHLY', 'Monthly'),
+    ]
+    PLAN_CHOICES = [
+        ('FREE', 'Free'),
+        ('PLUS', 'ChamaLink Plus'),
     ]
     created_by = models.ForeignKey(
         User,
@@ -31,7 +38,15 @@ class Chama(models.Model):
         max_length=10, choices=CONTRIBUTION_FREQUENCIES, default='MONTHLY'
     )
     contribution_due_day = models.PositiveSmallIntegerField(default=1)
+    plan = models.CharField(max_length=10, choices=PLAN_CHOICES, default='FREE')
+    premium_until = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def has_premium_access(self):
+        return self.plan == 'PLUS' and (
+            self.premium_until is None or self.premium_until >= timezone.localdate()
+        )
 
     def __str__(self):
         return self.name
@@ -302,6 +317,107 @@ class RotationPayout(models.Model):
     class Meta:
         ordering = ['turn_number']
         constraints = [models.UniqueConstraint(fields=('chama', 'turn_number'), name='unique_rotation_turn_per_chama')]
+
+
+class SavingsGoal(models.Model):
+    chama = models.ForeignKey(Chama, on_delete=models.CASCADE, related_name='savings_goals')
+    title = models.CharField(max_length=120)
+    description = models.TextField(blank=True)
+    target_amount = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    target_date = models.DateField(null=True, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['target_date', '-created_at']
+
+    @property
+    def tracked_amount(self):
+        return self.progress_entries.aggregate(total=models.Sum('amount'))['total'] or 0
+
+    @property
+    def progress_percent(self):
+        if not self.target_amount:
+            return 0
+        return min(100, int(self.tracked_amount * 100 / self.target_amount))
+
+    def __str__(self):
+        return f'{self.title} · {self.chama.name}'
+
+
+class GoalProgressEntry(models.Model):
+    goal = models.ForeignKey(SavingsGoal, on_delete=models.CASCADE, related_name='progress_entries')
+    amount = models.DecimalField(
+        max_digits=12, decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    note = models.CharField(max_length=180, blank=True)
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'KSh {self.amount} progress for {self.goal.title}'
+
+
+class ChamaMeeting(models.Model):
+    chama = models.ForeignKey(Chama, on_delete=models.CASCADE, related_name='meetings')
+    title = models.CharField(max_length=120)
+    meeting_date = models.DateTimeField()
+    location = models.CharField(max_length=180, blank=True)
+    agenda = models.TextField(blank=True)
+    minutes = models.TextField(blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-meeting_date']
+
+    def __str__(self):
+        return f'{self.title} · {self.chama.name}'
+
+
+class MeetingAttendance(models.Model):
+    STATUS_CHOICES = [
+        ('PRESENT', 'Present'),
+        ('ABSENT', 'Absent'),
+        ('EXCUSED', 'Excused'),
+    ]
+    meeting = models.ForeignKey(ChamaMeeting, on_delete=models.CASCADE, related_name='attendance')
+    membership = models.ForeignKey(Membership, on_delete=models.CASCADE, related_name='meeting_attendance')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PRESENT')
+    recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=('meeting', 'membership'), name='unique_meeting_attendance')]
+        ordering = ['membership__full_name']
+
+
+class PlanInquiry(models.Model):
+    STATUS_CHOICES = [
+        ('NEW', 'New'),
+        ('CONTACTED', 'Contacted'),
+        ('CLOSED', 'Closed'),
+    ]
+    chama = models.ForeignKey(Chama, on_delete=models.PROTECT, related_name='plan_inquiries')
+    requested_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    contact_phone = models.CharField(max_length=20)
+    contact_email = models.EmailField(blank=True)
+    message = models.TextField(blank=True)
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='NEW')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Plus plan inquiry · {self.chama.name}'
 
 
 class MpesaTransaction(models.Model):

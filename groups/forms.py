@@ -1,5 +1,6 @@
 
 from django import forms
+import re
 
 from .models import (
     Chama,
@@ -10,7 +11,17 @@ from .models import (
     ChamaCashflowEntry,
     MemberFine,
     FinePayment,
+    SavingsGoal,
+    GoalProgressEntry,
+    ChamaMeeting,
+    MeetingAttendance,
+    PlanInquiry,
 )
+
+
+def normalize_national_id(value):
+    """Normalize common visual separators while preserving the ID itself."""
+    return re.sub(r'[\s-]+', '', value or '').casefold()
 
 
 class MembershipForm(forms.ModelForm):
@@ -35,7 +46,7 @@ class MembershipForm(forms.ModelForm):
             }),
             'national_id': forms.TextInput(attrs={
                 'class': 'form-input',
-                'placeholder': 'Optional for account invitation',
+                'placeholder': 'National ID for self-service joining',
             }),
             'role': forms.Select(attrs={'class': 'form-input'}),
         }
@@ -49,6 +60,15 @@ class MembershipForm(forms.ModelForm):
                 choice for choice in self.fields['role'].choices
                 if choice[0] != 'CHAIRPERSON'
             ]
+
+        self.fields['national_id'].help_text = (
+            'Enter the member’s National ID so they can find this record and join. '
+            'Leave it blank only if you will share a one-time invitation link.'
+        )
+
+    def clean_national_id(self):
+        national_id = normalize_national_id(self.cleaned_data.get('national_id'))
+        return national_id or None
 
     def clean_role(self):
         role = self.cleaned_data['role']
@@ -321,3 +341,86 @@ class FinePaymentForm(forms.ModelForm):
         if amount <= 0:
             raise forms.ValidationError('Payment amount must be greater than zero.')
         return amount
+
+
+class SavingsGoalForm(forms.ModelForm):
+    class Meta:
+        model = SavingsGoal
+        fields = ['title', 'description', 'target_amount', 'target_date']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. School fees fund'}),
+            'description': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'What is the group saving for?'}),
+            'target_amount': forms.NumberInput(attrs={'class': 'form-input', 'min': '1', 'step': '0.01'}),
+            'target_date': forms.DateInput(attrs={'class': 'form-input', 'type': 'date'}),
+        }
+
+    def clean_target_amount(self):
+        amount = self.cleaned_data['target_amount']
+        if amount <= 0:
+            raise forms.ValidationError('The goal target must be greater than zero.')
+        return amount
+
+
+class GoalProgressForm(forms.ModelForm):
+    class Meta:
+        model = GoalProgressEntry
+        fields = ['amount', 'note']
+        widgets = {
+            'amount': forms.NumberInput(attrs={'class': 'form-input', 'min': '0.01', 'step': '0.01'}),
+            'note': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Optional milestone note'}),
+        }
+
+    def clean_amount(self):
+        amount = self.cleaned_data['amount']
+        if amount <= 0:
+            raise forms.ValidationError('Enter an amount greater than zero.')
+        return amount
+
+
+class ChamaMeetingForm(forms.ModelForm):
+    meeting_date = forms.DateTimeField(
+        input_formats=['%Y-%m-%dT%H:%M'],
+        widget=forms.DateTimeInput(
+            attrs={'class': 'form-input', 'type': 'datetime-local'},
+            format='%Y-%m-%dT%H:%M',
+        ),
+    )
+
+    class Meta:
+        model = ChamaMeeting
+        fields = ['title', 'meeting_date', 'location', 'agenda']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. Monthly chama meeting'}),
+            'location': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Meeting location or online link'}),
+            'agenda': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Topics for discussion'}),
+        }
+
+
+class MeetingMinutesForm(forms.ModelForm):
+    class Meta:
+        model = ChamaMeeting
+        fields = ['minutes']
+        widgets = {
+            'minutes': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Decisions, actions and follow-ups'}),
+        }
+
+
+class MeetingAttendanceForm(forms.ModelForm):
+    class Meta:
+        model = MeetingAttendance
+        fields = ['membership', 'status']
+        widgets = {
+            'membership': forms.Select(attrs={'class': 'form-input'}),
+            'status': forms.Select(attrs={'class': 'form-input'}),
+        }
+
+
+class PlanInquiryForm(forms.ModelForm):
+    class Meta:
+        model = PlanInquiry
+        fields = ['contact_phone', 'contact_email', 'message']
+        widgets = {
+            'contact_phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Best number to reach you'}),
+            'contact_email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'Email (optional)'}),
+            'message': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Tell us what your chama needs'}),
+        }

@@ -10,6 +10,9 @@ urlpatterns = [
     path('chamas/<int:chama_id>/join/', views.join_chama, name='join_chama'),
     path('members/<int:member_id>/invite/', views.issue_member_invite, name='issue_member_invite'),
     path('settings/', views.app_settings, name='app_settings'),
+    path('plans/', views.plans, name='plans'),
+    path('savings-goals/', views.savings_goals, name='savings_goals'),
+    path('meetings/', views.meetings, name='meetings'),
 
     path('members/', views.members, name='members'),
 

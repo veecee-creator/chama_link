@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
     <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
     <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
-    <meta name="theme-color" content="#0F5B3A">
+    <meta name="theme-color" content="#101828">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="ChamaLink">
@@ -71,6 +71,15 @@
             </a>
             <a href="{% url 'mpesa_payment_page' %}" class="nav-link">
                 <span class="nav-icon">KSh</span> M-Pesa payments
+            </a>
+            <a href="{% url 'savings_goals' %}" class="nav-link">
+                <span class="nav-icon">◎</span> Savings goals
+            </a>
+            <a href="{% url 'meetings' %}" class="nav-link">
+                <span class="nav-icon">▦</span> Meetings
+            </a>
+            <a href="{% url 'plans' %}" class="nav-link">
+                <span class="nav-icon">✦</span> ChamaLink Plus
             </a>
             <a href="{% url 'chama_directory' %}" class="nav-link">
                 <span class="nav-icon">⌕</span> Find a Chama
@@ -256,6 +265,24 @@
                     <span class="action-text">
                         <strong>Group finances</strong>
                         <small>Review cashflow and member fine balances</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'savings_goals' %}" class="action-card">
+                    <span class="action-icon green">◎</span>
+                    <span class="action-text">
+                        <strong>Shared savings goals</strong>
+                        <small>Plan milestones together</small>
+                    </span>
+                    <span class="action-arrow">↗</span>
+                </a>
+
+                <a href="{% url 'meetings' %}" class="action-card">
+                    <span class="action-icon purple">▦</span>
+                    <span class="action-text">
+                        <strong>Meetings &amp; decisions</strong>
+                        <small>Keep agendas, minutes and attendance</small>
                     </span>
                     <span class="action-arrow">↗</span>
                 </a>

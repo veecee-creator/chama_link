@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#101828">
+    <title>Plans | ChamaLink</title>
+    <link rel="stylesheet" href="{% static 'groups/dashboard.css' %}"><link rel="stylesheet" href="{% static 'groups/product-pages.css' %}">
+</head>
+<body class="dashboard-page product-page">
+<div class="app-layout">
+    <aside class="sidebar">
+        <a href="{% url 'dashboard' %}" class="brand"><img class="brand-logo" src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="40" height="40"><span>Chama<span class="brand-light">Link</span><small>GROW TOGETHER</small></span></a>
+        <p class="nav-heading">YOUR GROUP</p><nav class="side-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link">⌂ <span>Dashboard</span></a><a href="{% url 'members' %}" class="nav-link">♙ <span>Members</span></a><a href="{% url 'contributions' %}" class="nav-link">↗ <span>Contributions</span></a><a href="{% url 'loans' %}" class="nav-link">⇄ <span>Loans</span></a><a href="{% url 'savings_goals' %}" class="nav-link">◎ <span>Savings goals</span></a><a href="{% url 'meetings' %}" class="nav-link">▦ <span>Meetings</span></a><a href="{% url 'plans' %}" class="nav-link active">✦ <span>ChamaLink Plus</span></a>
+        </nav><div class="sidebar-bottom"><a href="{% url 'app_settings' %}" class="settings-link">⚙ Account settings</a></div>
+    </aside>
+    <main class="main-content">
+        <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Plans</strong></div><div class="topbar-right"><span class="group-chip">{% if chama %}{{ chama.name }}{% else %}Your next step{% endif %}</span><form method="post" action="{% url 'logout' %}" class="logout-form">{% csrf_token %}<button class="logout-link">Log out</button></form></div></header>
+        <section class="dashboard-body product-content">
+            {% if messages %}<div class="messages">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+            <section class="product-hero plans-hero"><div><p class="eyebrow">GROW AT YOUR GROUP’S PACE</p><h1>Good tools. Clear value.</h1><p>Keep core chama records simple and accessible. Add planning tools and hands-on support as your group grows.</p></div><div class="plans-stamp"><span>BUILT FOR</span><strong>Chamas<br>& communities</strong><i>✦</i></div></section>
+            <section class="plan-grid">
+                <article class="plan-card"><div class="plan-kicker">A CLEAR START</div><h2>Community</h2><p class="plan-price">Free <span>core group tools</span></p><p>Organise your chama’s everyday records.</p><ul><li>Member directory and invitations</li><li>Contribution history and reports</li><li>Loan applications and repayments</li><li>Group cashflow and payout records</li></ul><a class="secondary-button" href="{% url 'dashboard' %}">Go to dashboard</a></article>
+                <article class="plan-card plan-featured"><div class="plan-kicker">FOR GROUPS WITH BIGGER PLANS <span class="premium-pill">PLUS</span></div><h2>ChamaLink Plus</h2><p class="plan-price">Group quote <span>talk with our team</span></p><p>Make planning and group follow-through easier.</p><ul><li>Shared savings goals and milestones</li><li>Meeting agenda, minutes and attendance</li><li>Guided setup for your officers</li><li>Priority help getting your records started</li></ul>{% if has_premium_access %}<span class="plan-active">Plus is active{% if chama.premium_until %} until {{ chama.premium_until|date:"d M Y" }}{% endif %}</span>{% elif can_request %}<a class="primary-button" href="#request-quote">Request a group quote</a>{% else %}<p class="plan-note">Ask your chairperson or treasurer to request a group quote.</p>{% endif %}</article>
+            </section>
+            <p class="plan-transparency"><strong>No charge is made online.</strong> Share your group’s needs and the ChamaLink team will follow up with a quote. Your group’s contributions and loan repayments stay in your group records.</p>
+            {% if can_request %}<section class="product-panel quote-panel" id="request-quote"><div class="panel-title"><div><p class="eyebrow">LET’S TALK ABOUT YOUR GROUP</p><h2>Request a ChamaLink Plus quote</h2><p>We’ll use these details only to follow up on your group plan request.</p></div><span class="quote-spark">✦</span></div><form method="post" class="product-form">{% csrf_token %}{{ form.as_p }}<button class="primary-button" type="submit">Send quote request</button></form></section>
+            {% elif not membership %}<section class="product-panel"><h2>Start with your own group</h2><p>Create or join a chama to explore group plans.</p><a class="primary-button" href="{% url 'create_chama' %}">Create a chama</a></section>{% endif %}
+            {% if inquiries %}<section class="product-panel"><h2>Your recent plan requests</h2><div class="inquiry-list">{% for inquiry in inquiries %}<p><span>{{ inquiry.created_at|date:"d M Y" }}</span><strong>{{ inquiry.get_status_display }}</strong></p>{% endfor %}</div></section>{% endif %}
+        </section>
+    </main>
+</div>
+</body>
+</html>

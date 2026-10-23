@@ -5,7 +5,7 @@
     <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
     <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
     <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
-    <meta name="theme-color" content="#0F5B3A">
+    <meta name="theme-color" content="#101828">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Join {{ chama.name }} | ChamaLink</title>
@@ -28,8 +28,8 @@
             <p>You have been invited as <strong>{{ invited_membership.full_name }}</strong>. Confirm to link this membership to your account.</p>
             <form method="post">{% csrf_token %}<input type="hidden" name="invite" value="{{ invite_token }}"><button class="button" type="submit">Accept invitation</button></form>
         {% else %}
-            <p>Enter the National ID used when registering you, or ask your chairperson for a one-time invitation link.</p>
-            <form method="post">{% csrf_token %}<label for="national-id">National ID</label><input id="national-id" name="national_id" required autocomplete="off"><button class="button" type="submit">Verify and join</button></form>
+            <p>Enter the National ID your chairperson used when registering you. Spaces and hyphens are okay. If no ID was added, ask them to create a one-time invitation link.</p>
+            <form method="post">{% csrf_token %}<label for="national-id">National ID</label><input id="national-id" name="national_id" value="{{ entered_national_id }}" required autocomplete="off" inputmode="numeric"><button class="button" type="submit">Verify and join</button></form>
         {% endif %}
         <a class="back-link" href="{% url 'chama_directory' %}">Back to chama search</a>
     </main>

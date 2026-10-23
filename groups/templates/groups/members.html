@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" sizes="48x48" href="{% static 'groups/logo/app-icon-48.png' %}">
     <link rel="apple-touch-icon" href="{% static 'groups/logo/app-icon-180.png' %}">
     <link rel="manifest" href="{% static 'groups/logo/manifest.json' %}">
-    <meta name="theme-color" content="#0F5B3A">
+    <meta name="theme-color" content="#101828">
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -135,8 +135,9 @@
                 <p>Share this one-time link with the member. It expires after seven days.</p>
                 <div class="invite-link-row">
                     <input id="member-invite-link" class="form-input" type="text" readonly value="{{ invite_url }}" aria-label="Member invitation link">
-                    <button type="button" class="secondary-button" onclick="const field=document.getElementById('member-invite-link');field.select();navigator.clipboard?.writeText(field.value);">Copy link</button>
+                    <button type="button" class="secondary-button" onclick="copyMemberInvite()">Copy link</button>
                 </div>
+                <p id="invite-copy-status" class="form-help" role="status" aria-live="polite"></p>
             </section>
             {% endif %}
 
@@ -255,5 +256,24 @@
         </main>
     </div>
 </div>
+<script>
+async function copyMemberInvite() {
+    const field = document.getElementById('member-invite-link');
+    const status = document.getElementById('invite-copy-status');
+    field.focus();
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(field.value);
+        } else if (!document.execCommand('copy')) {
+            throw new Error('Clipboard unavailable');
+        }
+        status.textContent = 'Invitation link copied. Share it with the member.';
+    } catch (error) {
+        status.textContent = 'Link selected. Copy it with Ctrl+C or long-press and choose Copy.';
+    }
+}
+</script>
 </body>
 </html>
