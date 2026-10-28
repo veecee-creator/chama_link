@@ -77,6 +77,14 @@
         #loan-field {
             display: none;
         }
+        .stk-dialog { width: min(420px, calc(100vw - 32px)); padding: 28px; border: 0; border-radius: 20px; color: #101828; box-shadow: 0 24px 80px #10182840; }
+        .stk-dialog::backdrop { background: #10182880; backdrop-filter: blur(3px); }
+        .stk-dialog h2 { margin: 0 0 10px; font-size: 21px; }
+        .stk-dialog p { color: #667085; line-height: 1.65; }
+        .stk-dialog .stk-status { display: grid; width: 52px; height: 52px; margin-bottom: 18px; place-items: center; border-radius: 50%; background: #eef2ff; color: #465fff; font-size: 25px; font-weight: 800; }
+        .stk-dialog[data-state="error"] .stk-status { background: #fdeceb; color: #b3261e; }
+        .stk-dialog button { width: 100%; padding: 13px; border: 0; border-radius: 10px; background: #465fff; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+        .payment-button:disabled { opacity: .65; cursor: wait; }
     </style>
 </head>
 
@@ -172,11 +180,62 @@
     </div>
 
     {% if not demo_mode %}
+    <dialog class="stk-dialog" id="stk-dialog" aria-labelledby="stk-title" aria-describedby="stk-message" data-state="success">
+        <div class="stk-status" aria-hidden="true">✓</div>
+        <h2 id="stk-title">M-Pesa prompt sent</h2>
+        <p id="stk-message" role="status" aria-live="polite">Check your phone and enter your M-Pesa PIN in the official Safaricom prompt to complete payment. Never enter or share your PIN on this website.</p>
+        <button type="button" id="stk-close">Got it</button>
+    </dialog>
+    {% endif %}
+
+    {% if not demo_mode %}
     <script>
         const typeField = document.getElementById("transaction_type");
         const loanField = document.getElementById("loan-field");
         const loanSelect = document.getElementById("loan_id");
         const memberSelect = document.getElementById("membership_id");
+        const paymentForm = document.querySelector(".payment-form");
+        const paymentButton = paymentForm.querySelector(".payment-button");
+        const dialog = document.getElementById("stk-dialog");
+        const dialogTitle = document.getElementById("stk-title");
+        const dialogMessage = document.getElementById("stk-message");
+        const dialogStatus = dialog.querySelector(".stk-status");
+
+        document.getElementById("stk-close").addEventListener("click", () => dialog.close());
+
+        function showPaymentResult(success, message, uncertain = false) {
+            dialog.dataset.state = success ? "success" : "error";
+            dialogTitle.textContent = success ? (uncertain ? "Check your phone" : "M-Pesa prompt sent") : "Payment request failed";
+            dialogStatus.textContent = success ? (uncertain ? "…" : "✓") : "!";
+            dialogMessage.textContent = message;
+            dialog.showModal();
+        }
+
+        paymentForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!paymentForm.reportValidity()) return;
+            paymentButton.disabled = true;
+            paymentButton.textContent = "Sending M-Pesa prompt…";
+            try {
+                const response = await fetch(paymentForm.action, {
+                    method: "POST",
+                    body: new FormData(paymentForm),
+                    headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" }
+                });
+                const result = await response.json();
+                const ok = response.ok && result.success;
+                const uncertain = response.status === 202;
+                const message = ok
+                    ? `${result.message || "Check your phone for the M-Pesa prompt."} Enter your M-Pesa PIN only in the official Safaricom prompt, never on this website.`
+                    : (result.message || "We could not send the M-Pesa request. Check the details and try again.");
+                showPaymentResult(ok, message, uncertain);
+            } catch (error) {
+                showPaymentResult(true, "We could not confirm the request. Check your phone for an M-Pesa prompt before trying again. Enter your PIN only in the official Safaricom prompt.", true);
+            } finally {
+                paymentButton.disabled = false;
+                paymentButton.textContent = "Request M-Pesa STK Push";
+            }
+        });
 
         function updateLoanOptions() {
             const isRepayment = typeField.value === "loan_repayment";

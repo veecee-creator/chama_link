@@ -2026,7 +2026,10 @@ def app_settings(request):
             instance=profile
         )
 
-        if profile_form.is_valid() and picture_form.is_valid():
+        profile_is_valid = profile_form.is_valid()
+        picture_is_valid = picture_form.is_valid()
+
+        if profile_is_valid and picture_is_valid:
             profile_form.save()
             picture_form.save()
 
@@ -2036,6 +2039,11 @@ def app_settings(request):
             )
 
             return redirect('app_settings')
+
+        messages.error(
+            request,
+            'Your profile was not saved. Please fix the highlighted fields and try again.'
+        )
 
     else:
         profile_form = ProfileForm(instance=request.user)

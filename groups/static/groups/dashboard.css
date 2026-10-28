@@ -1375,37 +1375,70 @@ a.status-chip:hover { background: var(--brand); color: #ffffff; }
 }
 
 @media (max-width: 900px) {
-    /* Sidebar becomes a compact header with a scrollable nav row */
+    /* Phone app shell: the workspace nav becomes a persistent swipeable dock. */
     .app-layout { grid-template-columns: 1fr; }
 
     .sidebar {
-        position: static;
+        position: fixed;
+        z-index: 100;
+        right: 12px;
+        bottom: calc(10px + env(safe-area-inset-bottom));
+        left: 12px;
         height: auto;
-        flex-direction: row;
-        flex-wrap: wrap;
+        flex-direction: column;
+        flex-wrap: nowrap;
         align-items: center;
-        gap: 6px 10px;
-        padding: 12px 14px;
-        overflow: visible;
+        gap: 0;
+        padding: 8px 6px;
+        overflow: hidden;
+        border: 1px solid #eaecf0;
+        border-radius: 18px;
+        background: #ffffffed;
+        box-shadow: 0 12px 34px #10182820;
+        backdrop-filter: blur(16px);
     }
-    .brand { padding: 0 6px 0 0; }
+    .brand { display: none; }
     .nav-heading,
     .help-card,
     .sidebar-footer { display: none; }
 
     .side-nav {
-        order: 3;
-        flex: 1 0 100%;
+        order: 0;
+        flex: 0 0 auto;
+        width: 100%;
         flex-direction: row;
-        gap: 4px;
+        justify-content: flex-start;
+        gap: 5px;
         overflow-x: auto;
-        padding-bottom: 2px;
+        padding: 0 0 2px;
         scrollbar-width: none;
+        overscroll-behavior-inline: contain;
+        scroll-snap-type: x proximity;
     }
     .side-nav::-webkit-scrollbar { display: none; }
-    .nav-link { white-space: nowrap; padding: 9px 12px; font-size: 0.86rem; }
+    .nav-link {
+        display: flex;
+        min-width: 70px;
+        min-height: 58px;
+        flex: 0 0 auto;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 5px 8px;
+        border-radius: 12px;
+        color: #667085;
+        font-size: 10px;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+        scroll-snap-align: center;
+    }
+    .nav-link.active { background: #eef2ff; color: #3447d5; }
+    .nav-icon { min-width: 0; font-size: 18px; line-height: 1.1; }
+    .nav-link .nav-icon:has(+ *) { font-size: 16px; }
 
-    .sidebar-bottom { margin: 0 0 0 auto; padding: 0; }
+    .sidebar-bottom { display: none; }
 
     .topbar { position: static; }
     .profile-details,
@@ -1420,6 +1453,9 @@ a.status-chip:hover { background: var(--brand); color: #ffffff; }
     }
     .menu-title { grid-column: 1 / -1; }
     .menu-link { margin-bottom: 0; }
+    .main-content { min-width: 0; }
+    .dashboard-body { padding-bottom: 100px; }
+    .page-utility { padding-right: 10px; }
 }
 
 @media (max-width: 700px) {
@@ -1433,6 +1469,19 @@ a.status-chip:hover { background: var(--brand); color: #ffffff; }
 
 @media (max-width: 560px) {
     body { font-size: 14.5px; }
+
+    .dashboard-page { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+    .sidebar { right: 8px; left: 8px; bottom: calc(8px + env(safe-area-inset-bottom)); }
+    .nav-link { min-width: 66px; }
+    .nav-link.active { box-shadow: inset 0 0 0 1px #dfe4ff; }
+    .topbar { min-height: 62px; }
+    .mobile-brand { display: flex; align-items: center; gap: 8px; }
+    .mobile-brand strong { color: var(--ink); font-family: var(--font-heading); font-size: 15px; }
+    .welcome-row h1 { font-size: clamp(1.6rem, 7vw, 2.1rem); }
+    .stat-card, .info-panel, .history-section, .settings-card, .member-card {
+        border-radius: 16px;
+        box-shadow: 0 5px 18px #10182808;
+    }
 
     .welcome-row { align-items: flex-start; }
     .welcome-row .primary-button { width: 100%; }

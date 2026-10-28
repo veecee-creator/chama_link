@@ -14,7 +14,7 @@
 </head>
 <body class="marketing-page">
     <header class="site-header">
-        <a class="wordmark" href="{% url 'landing' %}" aria-label="ChamaLink home"><span class="wordmark-mark">C</span>ChamaLink</a>
+        <a class="wordmark" href="{% url 'landing' %}" aria-label="ChamaLink home"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="34" height="34" style="border-radius:10px">ChamaLink</a>
         <nav class="marketing-nav" aria-label="Main navigation">
             <a href="#features">Features</a><a href="{% url 'plans' %}">Plans</a><a class="nav-login" href="{% url 'login' %}">Log in</a><a class="button button-small" href="{% url 'register' %}">Create account <span aria-hidden="true">→</span></a>
         </nav>
@@ -52,6 +52,6 @@
         <section class="how-it-works"><p class="eyebrow">GET STARTED</p><h2>Set up your group in three steps.</h2><div class="steps"><article><span>01</span><h3>Create an account</h3><p>Set up your profile and create a chama workspace.</p></article><article><span>02</span><h3>Register members</h3><p>Add members and securely share their joining links.</p></article><article><span>03</span><h3>Manage with clarity</h3><p>Track activity and keep important group plans visible.</p></article></div></section>
         <section class="final-cta"><span class="final-spark">C</span><p class="eyebrow">YOUR GROUP, READY FOR WHAT’S NEXT</p><h2>Bring your chama into focus.</h2><a class="button" href="{% url 'register' %}">Create your account <span aria-hidden="true">→</span></a><p class="final-login">Already have an account? <a href="{% url 'login' %}">Log in</a></p></section>
     </main>
-    <footer><a class="wordmark footer-wordmark" href="{% url 'landing' %}"><span class="wordmark-mark">✳</span>chama<span>link</span></a><span>Save together. Grow together.</span><a href="{% url 'plans' %}">Plans &amp; support</a><span>© {% now "Y" %} ChamaLink</span></footer>
+    <footer><a class="wordmark footer-wordmark" href="{% url 'landing' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="34" height="34" style="border-radius:10px">chama<span>link</span></a><span>Save together. Grow together.</span><a href="{% url 'plans' %}">Plans &amp; support</a><span>© {% now "Y" %} ChamaLink</span></footer>
 </body>
 </html>

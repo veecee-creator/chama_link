@@ -576,7 +576,7 @@
                 </div>
 
                 <div class="profile-intro">
-                    <div class="profile-avatar">
+                    <div class="profile-avatar" id="profile-avatar-preview">
                         {% if profile.profile_picture %}
                             <img
                                 src="{{ profile.profile_picture.url }}"
@@ -804,5 +804,24 @@
     </footer>
 
 </main>
+<script>
+    (() => {
+        const upload = document.getElementById("id_profile_picture");
+        const avatar = document.getElementById("profile-avatar-preview");
+        if (!upload || !avatar) return;
+        upload.addEventListener("change", () => {
+            const file = upload.files && upload.files[0];
+            if (!file || !file.type.startsWith("image/")) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                avatar.replaceChildren(Object.assign(document.createElement("img"), {
+                    src: reader.result,
+                    alt: "Selected profile picture preview"
+                }));
+            };
+            reader.readAsDataURL(file);
+        });
+    })();
+</script>
 </body>
 </html>

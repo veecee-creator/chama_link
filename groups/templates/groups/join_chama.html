@@ -19,7 +19,7 @@
         <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="logout-link">Logout</button></form>
     </div>
     {% endif %}
-    <header class="site-header"><a class="wordmark" href="{% url 'dashboard' %}">Chama<span>Link</span></a></header>
+    <header class="site-header"><a class="wordmark" href="{% url 'dashboard' %}"><img src="{% static 'groups/logo/chama-link-app-icon.svg' %}" alt="" width="34" height="34" style="border-radius:10px">Chama<span>Link</span></a></header>
     <main class="join-card">
         <p class="eyebrow">CLAIM YOUR MEMBERSHIP</p>
         <h1>Join {{ chama.name }}</h1>
